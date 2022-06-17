@@ -1,0 +1,14 @@
+* Personal NixOS config!
+
+** Steps to reproduce
+
+- Enable [[https://nixos.wiki/wiki/Flakes][Nix Flakes]]
+- `sudo nixos-rebuild switch --flake .#sg-nix`
+- ???
+- Enjoy
+
+-----
+
+* License
+
+MIT
