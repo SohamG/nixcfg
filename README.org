@@ -3,7 +3,7 @@
 ** Steps to reproduce
 
 - Enable [[https://nixos.wiki/wiki/Flakes][Nix Flakes]]
-- `sudo nixos-rebuild switch --flake .#sg-nix`
+- ~sudo nixos-rebuild switch --flake .#sg-nix~
 - ???
 - Enjoy
 
