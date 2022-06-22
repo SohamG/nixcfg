@@ -4,6 +4,12 @@
 
 {pkgs, ... }:
 
+let
+    my-nix-switch = pkgs.writeShellScriptBin "my-nix-switch" ''
+      sudo nixos-rebuild switch --flake /home/sohamg/nixcfg#
+    '';
+    inherit pkgs;
+in
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -79,15 +85,16 @@
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
-  environment.systemPackages = with pkgs; [
-    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    wget
-    gnomeExtensions.appindicator
-    gnomeExtensions.gsconnect
-    rclone
-    psmisc
-    sqlite
-  ];
+    environment.systemPackages = with pkgs; [
+        vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+        wget
+        gnomeExtensions.appindicator
+        gnomeExtensions.gsconnect
+        rclone
+        psmisc
+        sqlite
+        my-nix-switch
+    ];
 
   environment.sessionVariables = rec {
     # Firefox wayland
@@ -142,7 +149,7 @@
     serviceConfig = {
       User = "sohamg";
       # ExecStartPre = "/run/current-system/sw/bin/mkdir /home/sohamg/SyncNext";
-      ExecStart = "${pkgs.rclone}/bin/rclone mount vpsnc: /home/sohamg/SyncNext --vfs-cache-mode full";
+      ExecStart = "${pkgs.rclone}/bin/rclone mount vpsnc: /home/sohamg/SyncNext";
       ExecStop = "${pkgs.psmisc}/bin/killall rclone";
       Environment = ["PATH=/run/wrappers/bin/:$PATH"];
     };
