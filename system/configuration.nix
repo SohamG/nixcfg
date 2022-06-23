@@ -73,9 +73,17 @@ in
   services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
+
+  ####################
+  # IMPORTANT ########
+  ####################
+  # Imperative user management is off, so is `passwd`
+  users.mutableUsers = false;
+  
   users.users.sohamg = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "users" "audio" "video" "uucp" "docker" "network"]; # Enable ‘sudo’ for the user.
+    extraGroups = [ "wheel" "users" "audio" "video" "uucp" "docker" "networkmanager"]; # Enable ‘sudo’ for the user.
+    hashedPassword = "$6$dvC5IljJhXvXqZmW$Rgi..E83VMTLTUNp3CWlwoy1mdU7RdETUCeZOg7SvWdHSnxBnH3vPHenmyqr2wBl42dKFaAj74Hcz1LYvQl9z.";
     packages = with pkgs; [
       firefox
       neovim
