@@ -44,33 +44,50 @@ in
   #   useXkbConfig = true; # use xkbOptions in tty.
   # };
 
-  # Enable SSD FS Trim for SSD Goodness
-  services.fstrim.enable = true;
-  # Enable the X11 windowing system.
-  services.xserver.enable = true;
+  services = {
+
+    # Enable SSD FS Trim for SSD Goodness
+    fstrim.enable = true;
+    # Enable the X11 windowing system.
+    xserver.enable = true;
 
 
-  # Enable the GNOME Desktop Environment.
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
-  
+    # Enable the GNOME Desktop Environment.
+    xserver.displayManager.gdm.enable = true;
+    xserver.desktopManager.gnome.enable = true;
 
-  # Configure keymap in X11
-  services.xserver.layout = "us";
-  # services.xserver.xkbOptions = {
-  #   "eurosign:e";
-  #   "caps:escape" # map caps to escape.
-  # };
 
-  # Enable CUPS to print documents.
-  services.printing.enable = true;
+    # Configure keymap in X11
+    xserver.layout = "us";
+
+    # Enable CUPS to print documents.
+    printing.enable = true;
+
+    xserver.libinput.enable = true;
+
+    # Enable the OpenSSH daemon.
+    openssh.enable = true;
+    udev.packages = with pkgs; [
+        gnome.gnome-settings-daemon
+    ];
+    flatpak.enable = true;
+    emacs.enable = true;
+    emacs.defaultEditor = true;
+
+    avahi = {
+      enable = true;
+      nssmdns = true;
+      publish = {
+        workstation = true;
+      };
+    };
+  };
 
   # Enable sound.
   sound.enable = true;
   hardware.pulseaudio.enable = true;
 
   # Enable touchpad support (enabled default in most desktopManager).
-  services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
 
@@ -125,14 +142,6 @@ in
 
   # List services that you want to enable:
 
-  # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
-  services.udev.packages = with pkgs; [
-    gnome.gnome-settings-daemon
-  ];
-  services.flatpak.enable = true;
-  services.emacs.enable = true;
-  services.emacs.defaultEditor = true;
   virtualisation.docker.enable = true;
 
   # Shell config
