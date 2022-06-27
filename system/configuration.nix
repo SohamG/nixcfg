@@ -83,6 +83,7 @@ in
   users.users.sohamg = {
     isNormalUser = true;
     extraGroups = [ "wheel" "users" "audio" "video" "uucp" "docker" "networkmanager"]; # Enable ‘sudo’ for the user.
+    # Good luck hackers ;)
     hashedPassword = "$6$dvC5IljJhXvXqZmW$Rgi..E83VMTLTUNp3CWlwoy1mdU7RdETUCeZOg7SvWdHSnxBnH3vPHenmyqr2wBl42dKFaAj74Hcz1LYvQl9z.";
     packages = with pkgs; [
       firefox
@@ -167,6 +168,13 @@ in
     package = pkgs.nixFlakes;
     extraOptions = "experimental-features = nix-command flakes";
   };
+
+  swapDevices = [
+    {
+      device = "/swapfile";
+      size = 2048;
+    }
+  ];
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
