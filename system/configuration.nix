@@ -53,9 +53,12 @@ in
 
 
     # Enable the GNOME Desktop Environment.
-    xserver.displayManager.gdm.enable = true;
-    xserver.desktopManager.gnome.enable = true;
+    # xserver.displayManager.gdm.enable = true;
+    # xserver.desktopManager.gnome.enable = true;
 
+    # Try KDE LOL
+    xserver.displayManager.sddm.enable = true;
+    xserver.desktopManager.plasma5.enable = true;
 
     # Configure keymap in X11
     xserver.layout = "us";
@@ -83,6 +86,7 @@ in
     };
   };
 
+  fonts.fontconfig.defaultFonts.sansSerif = ["DejaVu Sans" "Noto Color Emoji"];
   # Enable sound.
   sound.enable = true;
   hardware.pulseaudio.enable = true;
@@ -135,7 +139,7 @@ in
   # programs.mtr.enable = true;
   programs.gnupg.agent = {
     enable = true;
-    pinentryFlavor= "gnome3";
+    pinentryFlavor= "qt";
   #  enableSSHSupport = true;
   };
   services.pcscd.enable = true;
