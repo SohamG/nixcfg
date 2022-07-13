@@ -2,8 +2,8 @@
   description = "Soham's Personal Nix Config!";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-22.05";
-    home-manager.url = "github:nix-community/home-manager/release-22.05";
+    nixpkgs.url = "nixpkgs/nixpkgs-unstable";
+    home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
   outputs = inputs@{ nixpkgs, home-manager, ...}:
@@ -30,6 +30,7 @@
                   emacs
                   vim
                 ];
+                home.stateVersion = "22.05";
                 programs.home-manager.enable = true;
               };
             }
