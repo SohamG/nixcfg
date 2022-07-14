@@ -140,7 +140,7 @@ in
   # programs.mtr.enable = true;
   programs.gnupg.agent = {
     enable = true;
-    pinentryFlavor= "qt";
+    pinentryFlavor= "gtk2";
   #  enableSSHSupport = true;
   };
   services.pcscd.enable = true;
