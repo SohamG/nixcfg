@@ -143,6 +143,7 @@ in
     pinentryFlavor= "gtk2";
   #  enableSSHSupport = true;
   };
+  programs.kdeconnect.enable = true;
   services.pcscd.enable = true;
 
   # List services that you want to enable:
