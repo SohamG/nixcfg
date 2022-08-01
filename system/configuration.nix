@@ -2,20 +2,20 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{pkgs, ... }:
+{ pkgs, ... }:
 
 let
-    my-nix-switch = pkgs.writeShellScriptBin "my-nix-switch" ''
-      sudo nixos-rebuild switch --flake /home/sohamg/nixcfg#
-    '';
-    inherit pkgs;
-in
-{
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
-
+  my-nix-switch = pkgs.writeShellScriptBin "my-nix-switch" ''
+    sudo nixos-rebuild switch --flake /home/sohamg/nixcfg#
+  '';
+  emx = with pkgs;
+      ((emacsPackagesFor emacsPgtk).emacsWithPackages
+        (epkgs: [ epkgs.vterm ]));
+in {
+  imports = [ # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+  ];
+  
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -24,11 +24,12 @@ in
   boot.plymouth.enable = true;
   boot.plymouth.theme = "breeze";
 
-  nix.useSandbox = true;
+
   # networking.hostName = "nixos"; # Define your hostname.
   # Pick only one of the below networking options.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-  networking.networkmanager.enable = true;  # Easiest to use and most distros use this by default.
+  networking.networkmanager.enable =
+    true; # Easiest to use and most distros use this by default.
 
   # Set your time zone.
   time.timeZone = "America/Chicago";
@@ -52,7 +53,6 @@ in
     # Enable the X11 windowing system.
     xserver.enable = true;
 
-
     # Enable the GNOME Desktop Environment.
     # xserver.displayManager.gdm.enable = true;
     # xserver.desktopManager.gnome.enable = true;
@@ -71,23 +71,21 @@ in
 
     # Enable the OpenSSH daemon.
     openssh.enable = true;
-    udev.packages = with pkgs; [
-        gnome.gnome-settings-daemon
-    ];
+    udev.packages = with pkgs; [ gnome.gnome-settings-daemon ];
     flatpak.enable = true;
-    emacs.enable = true;
+    #emacs.enable = true;
     emacs.defaultEditor = true;
+    emacs.package = emx;
 
     avahi = {
       enable = true;
       nssmdns = true;
-      publish = {
-        workstation = true;
-      };
+      publish = { workstation = true; };
     };
   };
 
-  fonts.fontconfig.defaultFonts.sansSerif = ["DejaVu Sans" "Noto Color Emoji"];
+  fonts.fontconfig.defaultFonts.sansSerif =
+    [ "DejaVu Sans" "Noto Color Emoji" ];
   # Enable sound.
   sound.enable = true;
   hardware.pulseaudio.enable = true;
@@ -101,31 +99,37 @@ in
   ####################
   # Imperative user management is off, so is `passwd`
   users.mutableUsers = false;
-  
+
   users.users.sohamg = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "users" "audio" "video" "uucp" "docker" "networkmanager"]; # Enable ‘sudo’ for the user.
+    extraGroups = [
+      "wheel"
+      "users"
+      "audio"
+      "video"
+      "uucp"
+      "docker"
+      "networkmanager"
+    ]; # Enable ‘sudo’ for the user.
     # Good luck hackers ;)
-    hashedPassword = "$6$dvC5IljJhXvXqZmW$Rgi..E83VMTLTUNp3CWlwoy1mdU7RdETUCeZOg7SvWdHSnxBnH3vPHenmyqr2wBl42dKFaAj74Hcz1LYvQl9z.";
-    packages = with pkgs; [
-      firefox
-      neovim
-      emacs
-    ];
+    hashedPassword =
+      "$6$dvC5IljJhXvXqZmW$Rgi..E83VMTLTUNp3CWlwoy1mdU7RdETUCeZOg7SvWdHSnxBnH3vPHenmyqr2wBl42dKFaAj74Hcz1LYvQl9z.";
+    packages = with pkgs; [ firefox neovim emx ];
   };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
-    environment.systemPackages = with pkgs; [
-        vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-        wget
-        gnomeExtensions.appindicator
-        gnomeExtensions.gsconnect
-        rclone
-        psmisc
-        sqlite
-        my-nix-switch
-    ];
+  environment.systemPackages = with pkgs; [
+    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    wget
+    gnomeExtensions.appindicator
+    gnomeExtensions.gsconnect
+    rclone
+    psmisc
+    sqlite
+    my-nix-switch
+    emx
+  ];
 
   environment.sessionVariables = rec {
     # Firefox wayland
@@ -140,8 +144,8 @@ in
   # programs.mtr.enable = true;
   programs.gnupg.agent = {
     enable = true;
-    pinentryFlavor= "gtk2";
-  #  enableSSHSupport = true;
+    pinentryFlavor = "gtk2";
+    #  enableSSHSupport = true;
   };
   programs.kdeconnect.enable = true;
   services.pcscd.enable = true;
@@ -157,39 +161,42 @@ in
   programs.zsh.syntaxHighlighting.enable = true;
   programs.zsh.ohMyZsh = {
     enable = true;
-    plugins = ["git" "man" "fzf" "vi-mode"];
+    plugins = [ "git" "man" "fzf" "vi-mode" ];
     theme = "agnoster";
     custom = "~/omz/";
   };
-  programs.zsh.shellAliases = {
-    nixre = "sudo nixos-rebuild switch";
-  };
+  programs.zsh.shellAliases = { nixre = "sudo nixos-rebuild switch"; };
 
   systemd.services.rcloneNextCloud = {
-    wantedBy = ["multi-user.target"];
-    after = ["network.target"];
+    wantedBy = [ "multi-user.target" ];
+    after = [ "network.target" ];
     description = "Auto Mount cloud.sohamg.xyz";
     enable = true;
     serviceConfig = {
       User = "sohamg";
       # ExecStartPre = "/run/current-system/sw/bin/mkdir /home/sohamg/SyncNext";
-      ExecStart = "${pkgs.rclone}/bin/rclone mount vpsnc: /home/sohamg/SyncNext";
+      ExecStart =
+        "${pkgs.rclone}/bin/rclone mount vpsnc: /home/sohamg/SyncNext";
       ExecStop = "${pkgs.psmisc}/bin/killall rclone";
-      Environment = ["PATH=/run/wrappers/bin/:$PATH"];
+      Environment = [ "PATH=/run/wrappers/bin/:$PATH" ];
     };
   };
   nixpkgs.config.allowUnfree = true;
   nix = {
     package = pkgs.nixFlakes;
-    extraOptions = "experimental-features = nix-command flakes";
+    extraOptions = ''
+      experimental-features = nix-command flakes
+      keep-outputs = true
+      keep-derivations = true
+    '';
+    settings.trusted-users = ["root" "sohamg"];
+    settings.sandbox = true;
   };
 
-  swapDevices = [
-    {
-      device = "/swapfile";
-      size = 2048;
-    }
-  ];
+  swapDevices = [{
+    device = "/swapfile";
+    size = 2048;
+  }];
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
