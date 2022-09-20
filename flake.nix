@@ -38,6 +38,8 @@
               programs.direnv.nix-direnv.enable = true;
               services.emacs.enable = true;
               services.flameshot.enable = true;
+              programs.vscode.enable = true;
+              programs.vscode.package = pkgs.vscode.fhs;
             };
           }
         ];

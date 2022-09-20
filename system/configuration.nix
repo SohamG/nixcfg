@@ -11,18 +11,30 @@ let
   emx = with pkgs;
       ((emacsPackagesFor emacsPgtk).emacsWithPackages
         (epkgs: [ epkgs.vterm ]));
+
+  nvidia-offload = pkgs.writeShellScriptBin "nvidia-offload" ''
+    export __NV_PRIME_RENDER_OFFLOAD=1
+    export __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0
+    export __GLX_VENDOR_LIBRARY_NAME=nvidia
+    export __VK_LAYER_NV_optimus=NVIDIA_only
+    exec "$@"
+  '';
 in {
   imports = [ # Include the results of the hardware scan.
     ./hardware-configuration.nix
   ];
   
   # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.systemd-boot.configurationLimit = 5;
-  boot.loader.systemd-boot.consoleMode = "auto";
-  boot.plymouth.enable = true;
-  boot.plymouth.theme = "breeze";
+  boot = {
+    loader = {
+        systemd-boot.enable = true;
+        efi.canTouchEfiVariables = true;
+        systemd-boot.configurationLimit = 5;
+        systemd-boot.consoleMode = "auto";
+    };
+    plymouth.enable = true;
+    plymouth.theme = "breeze";
+  };
 
 
   # networking.hostName = "nixos"; # Define your hostname.
@@ -52,14 +64,15 @@ in {
     fstrim.enable = true;
     # Enable the X11 windowing system.
     xserver.enable = true;
+    xserver.videoDrivers = [ "nvidia" ];
 
     # Enable the GNOME Desktop Environment.
-    # xserver.displayManager.gdm.enable = true;
-    # xserver.desktopManager.gnome.enable = true;
+    xserver.displayManager.gdm.enable = true;
+    xserver.desktopManager.gnome.enable = true;
 
     # Try KDE LOL
-    xserver.displayManager.sddm.enable = true;
-    xserver.desktopManager.plasma5.enable = true;
+    #xserver.displayManager.sddm.enable = true;
+    #xserver.desktopManager.plasma5.enable = true;
 
     # Configure keymap in X11
     xserver.layout = "us";
@@ -82,13 +95,22 @@ in {
       nssmdns = true;
       publish = { workstation = true; };
     };
+
+    # tlp.enable = true;
+    power-profiles-daemon.enable = true;
   };
 
-  fonts.fontconfig.defaultFonts.sansSerif =
-    [ "DejaVu Sans" "Noto Color Emoji" ];
   # Enable sound.
   sound.enable = true;
   hardware.pulseaudio.enable = true;
+
+  hardware.nvidia.prime = {
+    offload.enable = true;
+
+    intelBusId = "PCI:00:02:0";
+
+    nvidiaBusId = "PCI:01:00:0";
+  };
 
   # Enable touchpad support (enabled default in most desktopManager).
 
@@ -110,6 +132,7 @@ in {
       "uucp"
       "docker"
       "networkmanager"
+      "dialout"
     ]; # Enable ‘sudo’ for the user.
     # Good luck hackers ;)
     hashedPassword =
@@ -127,8 +150,11 @@ in {
     rclone
     psmisc
     sqlite
+    networkmanager-openvpn
     my-nix-switch
-    emx
+
+    pkgs.linuxKernel.packages.linux_5_15.v4l2loopback
+    nvidia-offload
   ];
 
   environment.sessionVariables = rec {
@@ -137,8 +163,12 @@ in {
 
     # ZSH Vim Mode
     VI_MODE_SET_CURSOR = "true";
+
+    PATH = [ "\${HOME}/.local/bin" ];
   };
   programs.command-not-found.enable = true;
+  qt5.style = "adwaita-dark";
+  qt5.platformTheme = "gnome";
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
@@ -147,12 +177,14 @@ in {
     pinentryFlavor = "gtk2";
     #  enableSSHSupport = true;
   };
-  programs.kdeconnect.enable = true;
+  programs.kdeconnect.enable = false;
   services.pcscd.enable = true;
 
   # List services that you want to enable:
 
   virtualisation.docker.enable = true;
+  virtualisation.virtualbox.host.enable = true;
+  users.extraGroups.vboxusers.members = [ "sohamg" ];
 
   # Shell config
   programs.zsh.enable = true;
@@ -197,6 +229,11 @@ in {
     device = "/swapfile";
     size = 2048;
   }];
+
+  fonts.fontconfig = {
+    defaultFonts.serif = [ "DejaVu Serif" "Noto Color Emoji"];
+    defaultFonts.sansSerif = [ "DejaVu Sans" "Noto Sans" "Noto Color Emoji"];
+  };
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
