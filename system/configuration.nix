@@ -19,6 +19,15 @@ let
     export __VK_LAYER_NV_optimus=NVIDIA_only
     exec "$@"
   '';
+
+  # brun = pkgs.writeShellScriptBin "brun" ''
+  #      ${pkgs.bemenu}/bin/bemenu-run -i -l 10
+
+  # '';
+
+  runriver = pkgs.writeShellScriptBin "runriver" ''
+           XKB_DEFAULT_OPTIONS=ctrl:nocaps ${pkgs.river}/bin/river
+  '';
 in {
   imports = [ # Include the results of the hardware scan.
     ./hardware-configuration.nix
@@ -32,6 +41,9 @@ in {
         systemd-boot.configurationLimit = 5;
         systemd-boot.consoleMode = "auto";
     };
+    kernelPackages = pkgs.linuxPackages_latest;
+    extraModulePackages = with pkgs.linuxPackages_latest; [ v4l2loopback.out ];
+    kernelModules = [ "v4l2loopback" "snd-loop"];
     plymouth.enable = true;
     plymouth.theme = "breeze";
   };
@@ -55,24 +67,30 @@ in {
   # console = {
   #   font = "Lat2-Terminus16";
   #   keyMap = "us";
-  #   useXkbConfig = true; # use xkbOptions in tty.
+  #   useXkbConfig = true; # use xkbOptions in tt.
   # };
 
+  xdg.portal.enable = true;
+  xdg.portal.wlr.enable = true;
   services = {
 
     # Enable SSD FS Trim for SSD Goodness
     fstrim.enable = true;
     # Enable the X11 windowing system.
     xserver.enable = true;
-    xserver.videoDrivers = [ "nvidia" ];
-
+    # xserver.videoDrivers = [ "nvidia" ];
+    greetd.enable = true;
+    greetd.settings = {
+      default_session = {
+        command = "${pkgs.greetd.greetd}/bin/agreety --cmd runriver";
+      };
+    };
     # Enable the GNOME Desktop Environment.
-    xserver.displayManager.gdm.enable = true;
-    xserver.desktopManager.gnome.enable = true;
-
+    # xserver.displayManager.gdm.enable = true;
+    # xserver.desktopManager.gnome.enable = true;
     # Try KDE LOL
-    #xserver.displayManager.sddm.enable = true;
-    #xserver.desktopManager.plasma5.enable = true;
+    xserver.displayManager.sddm.enable = true;
+    xserver.desktopManager.plasma5.enable = true;
 
     # Configure keymap in X11
     xserver.layout = "us";
@@ -84,7 +102,7 @@ in {
 
     # Enable the OpenSSH daemon.
     openssh.enable = true;
-    udev.packages = with pkgs; [ gnome.gnome-settings-daemon ];
+    # udev.packages = with pkgs; [ gnome.gnome-settings-daemon ];
     flatpak.enable = true;
     #emacs.enable = true;
     emacs.defaultEditor = true;
@@ -104,13 +122,13 @@ in {
   sound.enable = true;
   hardware.pulseaudio.enable = true;
 
-  hardware.nvidia.prime = {
-    offload.enable = true;
+  # hardware.nvidia.prime = {
+  #   offload.enable = true;
 
-    intelBusId = "PCI:00:02:0";
+  #   intelBusId = "PCI:00:02:0";
 
-    nvidiaBusId = "PCI:01:00:0";
-  };
+  #   nvidiaBusId = "PCI:01:00:0";
+  # };
 
   # Enable touchpad support (enabled default in most desktopManager).
 
@@ -145,18 +163,20 @@ in {
   environment.systemPackages = with pkgs; [
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wget
-    gnomeExtensions.appindicator
-    gnomeExtensions.gsconnect
+    # gnomeExtensions.appindicator
+    # gnomeExtensions.gsconnect
     rclone
     psmisc
     sqlite
     networkmanager-openvpn
     my-nix-switch
-
-    pkgs.linuxKernel.packages.linux_5_15.v4l2loopback
+    man-pages
+    man-pages-posix
     nvidia-offload
+    river
+    runriver
   ];
-
+  documentation.dev.enable = true;
   environment.sessionVariables = rec {
     # Firefox wayland
     MOZ_ENABLE_WAYLAND = "1";
@@ -164,7 +184,9 @@ in {
     # ZSH Vim Mode
     VI_MODE_SET_CURSOR = "true";
 
-    PATH = [ "\${HOME}/.local/bin" ];
+    PATH = [ "\${HOME}/.local/bin" "/var/lib/flatpak/exports/bin" "~/.local/share/flatpak/exports/bin"];
+
+    XDG_DATA_DIRS = [ "/var/lib/flatpak/exports/share" "/home/sohamg/.local/share/flatpak/exports/share"];
   };
   programs.command-not-found.enable = true;
   qt5.style = "adwaita-dark";
@@ -174,12 +196,12 @@ in {
   # programs.mtr.enable = true;
   programs.gnupg.agent = {
     enable = true;
-    pinentryFlavor = "gtk2";
+    pinentryFlavor = "qt";
     #  enableSSHSupport = true;
   };
-  programs.kdeconnect.enable = false;
+  programs.kdeconnect.enable = true;
   services.pcscd.enable = true;
-
+  programs.nix-ld.enable = true;
   # List services that you want to enable:
 
   virtualisation.docker.enable = true;
@@ -199,23 +221,23 @@ in {
   };
   programs.zsh.shellAliases = { nixre = "sudo nixos-rebuild switch"; };
 
-  systemd.services.rcloneNextCloud = {
-    wantedBy = [ "multi-user.target" ];
-    after = [ "network.target" ];
-    description = "Auto Mount cloud.sohamg.xyz";
-    enable = true;
-    serviceConfig = {
-      User = "sohamg";
-      # ExecStartPre = "/run/current-system/sw/bin/mkdir /home/sohamg/SyncNext";
-      ExecStart =
-        "${pkgs.rclone}/bin/rclone mount vpsnc: /home/sohamg/SyncNext";
-      ExecStop = "${pkgs.psmisc}/bin/killall rclone";
-      Environment = [ "PATH=/run/wrappers/bin/:$PATH" ];
-    };
-  };
+  # systemd.services.rcloneNextCloud = {
+  #   wantedBy = [ "multi-user.target" ];
+  #   after = [ "network.target" ];
+  #   description = "Auto Mount cloud.sohamg.xyz";
+  #   enable = true;
+  #   serviceConfig = {
+  #     User = "sohamg";
+  #     # ExecStartPre = "/run/current-system/sw/bin/mkdir /home/sohamg/SyncNext";
+  #     ExecStart =
+  #       "${pkgs.rclone}/bin/rclone mount vpsnc: /home/sohamg/SyncNext";
+  #     ExecStop = "${pkgs.psmisc}/bin/killall rclone";
+  #     Environment = [ "PATH=/run/wrappers/bin/:$PATH" ];
+  #   };
+  # };
   nixpkgs.config.allowUnfree = true;
   nix = {
-    package = pkgs.nixFlakes;
+    package = pkgs.nixVersions.stable;
     extraOptions = ''
       experimental-features = nix-command flakes
       keep-outputs = true
