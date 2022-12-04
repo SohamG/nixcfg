@@ -175,6 +175,7 @@ in {
     nvidia-offload
     river
     runriver
+    home-manager
   ];
   documentation.dev.enable = true;
   environment.sessionVariables = rec {
