@@ -6,12 +6,8 @@
 
 let
   my-nix-switch = pkgs.writeShellScriptBin "my-nix-switch" ''
-    sudo nixos-rebuild switch --flake /home/sohamg/nixcfg#
+    sudo nixos-rebuild switch --flake /home/sohamg/nixcfg# --impure -j6
   '';
-  emx = with pkgs;
-      ((emacsPackagesFor emacsPgtk).emacsWithPackages
-        (epkgs: [ epkgs.vterm ]));
-
   nvidia-offload = pkgs.writeShellScriptBin "nvidia-offload" ''
     export __NV_PRIME_RENDER_OFFLOAD=1
     export __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0
@@ -56,7 +52,8 @@ in {
     true; # Easiest to use and most distros use this by default.
 
   # Set your time zone.
-  time.timeZone = "America/Chicago";
+  # time.timeZone = "America/Chicago";
+  time.timeZone = "Asia/Kolkata";
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -106,7 +103,7 @@ in {
     flatpak.enable = true;
     #emacs.enable = true;
     emacs.defaultEditor = true;
-    emacs.package = emx;
+    # emacs.package = emx;
 
     avahi = {
       enable = true;
@@ -116,6 +113,8 @@ in {
 
     # tlp.enable = true;
     power-profiles-daemon.enable = true;
+
+    davfs2.enable = true;
   };
 
   # Enable sound.
@@ -155,7 +154,7 @@ in {
     # Good luck hackers ;)
     hashedPassword =
       "$6$dvC5IljJhXvXqZmW$Rgi..E83VMTLTUNp3CWlwoy1mdU7RdETUCeZOg7SvWdHSnxBnH3vPHenmyqr2wBl42dKFaAj74Hcz1LYvQl9z.";
-    packages = with pkgs; [ firefox neovim emx ];
+    packages = with pkgs; [ firefox neovim ];
   };
 
   # List packages installed in system profile. To search, run:
@@ -257,6 +256,25 @@ in {
     defaultFonts.serif = [ "DejaVu Serif" "Noto Color Emoji"];
     defaultFonts.sansSerif = [ "DejaVu Sans" "Noto Sans" "Noto Color Emoji"];
   };
+
+  environment.etc."davfs2/secrets" = {
+    text = "${builtins.readFile "/home/sohamg/nixcfg/system/davsecret"}";
+    mode = "0600";
+  };
+
+  systemd.mounts = [{
+    description = "Nextcloud";
+    what = "https://cloud.sohamg.xyz/remote.php/dav/files/sohamg/";
+    where = "/mnt/nextcloud";
+    options = "noauto,user,uid=sohamg,gid=sohamg";
+    type = "davfs";
+  }];
+
+  systemd.automounts = [{
+    description = "Nextcloud auto";
+    where = "/mnt/nextcloud";
+    wantedBy = ["multi-user.target"];
+  }];
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];

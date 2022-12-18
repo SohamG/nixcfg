@@ -24,25 +24,29 @@
             inherit pkgs;
             inherit system;
           })
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.sohamg = {
-              home.username = "sohamg";
-              home.homeDirectory = "/home/sohamg";
-              home.packages = with pkgs; [ zsh emacs vim flameshot ];
-              home.stateVersion = "22.05";
-              programs.home-manager.enable = true;
-              programs.direnv.enable = true;
-              programs.direnv.nix-direnv.enable = true;
-              services.emacs.enable = true;
-              services.flameshot.enable = true;
-              programs.vscode.enable = true;
-              programs.vscode.package = pkgs.vscode.fhs;
-            };
-          }
+          # home-manager.nixosModules.home-manager
+          # {
+          #   home-manager.useGlobalPkgs = true;
+          #   home-manager.useUserPackages = true;
+          #   home-manager.users.sohamg = {
+          #     home.username = "sohamg";
+          #     home.homeDirectory = "/home/sohamg";
+          #     home.packages = with pkgs; [ zsh emacs vim flameshot ];
+          #     home.stateVersion = "22.05";
+          #     programs.home-manager.enable = true;
+          #     programs.direnv.enable = true;
+          #     programs.direnv.nix-direnv.enable = true;
+          #     services.emacs.enable = true;
+          #     services.flameshot.enable = true;
+          #     programs.vscode.enable = true;
+          #     programs.vscode.package = pkgs.vscode.fhs;
+          #   };
+          # }
         ];
+      };
+      homeConfigurations.sohamg = home-manager.lib.homeManagerConfiguration {
+        inherit pkgs;
+        modules = [./home.nix];
       };
     };
 }
