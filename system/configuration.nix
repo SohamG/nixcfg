@@ -16,10 +16,10 @@ let
     exec "$@"
   '';
 
-  # brun = pkgs.writeShellScriptBin "brun" ''
-  #      ${pkgs.bemenu}/bin/bemenu-run -i -l 10
+  brun = pkgs.writeShellScriptBin "brun" ''
+       ${pkgs.bemenu}/bin/bemenu-run -i -l 10
 
-  # '';
+  '';
 
   runriver = pkgs.writeShellScriptBin "runriver" ''
            XKB_DEFAULT_OPTIONS=ctrl:nocaps ${pkgs.river}/bin/river
@@ -38,7 +38,7 @@ in {
         systemd-boot.consoleMode = "auto";
     };
     kernelPackages = pkgs.linuxPackages_latest;
-    extraModulePackages = with pkgs.linuxPackages_latest; [ v4l2loopback.out ];
+    extraModulePackages = with pkgs.linuxPackages_latest; [ v4l2loopback.out];
     kernelModules = [ "v4l2loopback" "snd-loop"];
     plymouth.enable = true;
     plymouth.theme = "breeze";
@@ -52,8 +52,8 @@ in {
     true; # Easiest to use and most distros use this by default.
 
   # Set your time zone.
-  # time.timeZone = "America/Chicago";
-  time.timeZone = "Asia/Kolkata";
+  time.timeZone = "America/Chicago";
+  # time.timeZone = "Asia/Kolkata";
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -99,6 +99,7 @@ in {
 
     # Enable the OpenSSH daemon.
     openssh.enable = true;
+    openssh.passwordAuthentication = false;
     # udev.packages = with pkgs; [ gnome.gnome-settings-daemon ];
     flatpak.enable = true;
     #emacs.enable = true;
@@ -175,6 +176,7 @@ in {
     river
     runriver
     home-manager
+    brun
   ];
   documentation.dev.enable = true;
   environment.sessionVariables = rec {
@@ -203,7 +205,7 @@ in {
   services.pcscd.enable = true;
   programs.nix-ld.enable = true;
   # List services that you want to enable:
-
+  programs.ssh.startAgent = true;
   virtualisation.docker.enable = true;
   virtualisation.virtualbox.host.enable = true;
   users.extraGroups.vboxusers.members = [ "sohamg" ];
