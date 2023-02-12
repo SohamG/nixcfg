@@ -22,7 +22,8 @@ let
   '';
 
   runriver = pkgs.writeShellScriptBin "runriver" ''
-           XKB_DEFAULT_OPTIONS=ctrl:nocaps ${pkgs.river}/bin/river
+           XDG_CURRENT_DESKTOP=sway
+           XKB_DEFAULT_OPTIONS=ctrl:nocaps dbus-run-session ${pkgs.river}/bin/river
   '';
 in {
   imports = [ # Include the results of the hardware scan.
@@ -37,9 +38,9 @@ in {
         systemd-boot.configurationLimit = 5;
         systemd-boot.consoleMode = "auto";
     };
-    kernelPackages = pkgs.linuxPackages_latest;
-    extraModulePackages = with pkgs.linuxPackages_latest; [ v4l2loopback.out];
-    kernelModules = [ "v4l2loopback" "snd-loop"];
+    kernelPackages = pkgs.linuxPackages;
+    extraModulePackages = with pkgs.linuxPackages; [ v4l2loopback.out digimend.out];
+    kernelModules = [ "v4l2loopback" "snd-loop" "digimend" ];
     plymouth.enable = true;
     plymouth.theme = "breeze";
   };
@@ -69,6 +70,8 @@ in {
 
   xdg.portal.enable = true;
   xdg.portal.wlr.enable = true;
+  xdg.portal.extraPortals = with pkgs; [xdg-desktop-portal-kde];
+
   services = {
 
     # Enable SSD FS Trim for SSD Goodness
@@ -76,12 +79,13 @@ in {
     # Enable the X11 windowing system.
     xserver.enable = true;
     # xserver.videoDrivers = [ "nvidia" ];
-    greetd.enable = true;
-    greetd.settings = {
-      default_session = {
-        command = "${pkgs.greetd.greetd}/bin/agreety --cmd runriver";
-      };
-    };
+    xserver.digimend.enable = true;
+    # greetd.enable = true;
+    # greetd.settings = {
+    #   default_session = {
+    #     command = "${pkgs.greetd.greetd}/bin/agreety --cmd runriver";
+    #   };
+    # };
     # Enable the GNOME Desktop Environment.
     # xserver.displayManager.gdm.enable = true;
     # xserver.desktopManager.gnome.enable = true;
@@ -99,7 +103,7 @@ in {
 
     # Enable the OpenSSH daemon.
     openssh.enable = true;
-    openssh.passwordAuthentication = false;
+    openssh.settings.PasswordAuthentication = false;
     # udev.packages = with pkgs; [ gnome.gnome-settings-daemon ];
     flatpak.enable = true;
     #emacs.enable = true;
@@ -177,6 +181,8 @@ in {
     runriver
     home-manager
     brun
+    xdg-desktop-portal-wlr
+    xdg-desktop-portal-kde
   ];
   documentation.dev.enable = true;
   environment.sessionVariables = rec {
@@ -191,8 +197,9 @@ in {
     XDG_DATA_DIRS = [ "/var/lib/flatpak/exports/share" "/home/sohamg/.local/share/flatpak/exports/share"];
   };
   programs.command-not-found.enable = true;
-  qt5.style = "adwaita-dark";
-  qt5.platformTheme = "gnome";
+  qt.enable = true;
+  qt.style = "adwaita-dark";
+  qt.platformTheme = "kde";
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
