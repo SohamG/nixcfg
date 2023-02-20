@@ -183,6 +183,7 @@ in {
     brun
     xdg-desktop-portal-wlr
     xdg-desktop-portal-kde
+    corefonts
   ];
   documentation.dev.enable = true;
   environment.sessionVariables = rec {
@@ -265,6 +266,8 @@ in {
     defaultFonts.serif = [ "DejaVu Serif" "Noto Color Emoji"];
     defaultFonts.sansSerif = [ "DejaVu Sans" "Noto Sans" "Noto Color Emoji"];
   };
+
+  fonts.fonts = with pkgs; [ corefonts ];
 
   environment.etc."davfs2/secrets" = {
     text = "${builtins.readFile "/home/sohamg/nixcfg/system/davsecret"}";
