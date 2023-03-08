@@ -184,6 +184,7 @@ in {
     xdg-desktop-portal-wlr
     xdg-desktop-portal-kde
     corefonts
+    btrfs-progs
   ];
   documentation.dev.enable = true;
   environment.sessionVariables = rec {
