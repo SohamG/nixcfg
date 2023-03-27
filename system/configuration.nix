@@ -120,6 +120,13 @@ in {
     power-profiles-daemon.enable = true;
 
     davfs2.enable = true;
+    davfs2.extraConfig =
+      ''cache_size 500
+        gui_optimize 1
+        use_locks 0
+        file_refresh 60
+        dir_refresh 60
+        buf_size 256'';
   };
 
   # Enable sound.
@@ -162,11 +169,22 @@ in {
     packages = with pkgs; [ firefox neovim ];
   };
 
+  users.extraUsers.rclone = {
+    isNormalUser = false;
+    isSystemUser = true;
+    extraGroups = [ "sohamg" ];
+    packages = with pkgs; [ rclone vim ];
+
+  };
+  users.users.rclone.group = "rclone";
+  users.groups.rclone = {};
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wget
+    sshfs
     # gnomeExtensions.appindicator
     # gnomeExtensions.gsconnect
     rclone
@@ -238,10 +256,12 @@ in {
   #   description = "Auto Mount cloud.sohamg.xyz";
   #   enable = true;
   #   serviceConfig = {
-  #     User = "sohamg";
-  #     # ExecStartPre = "/run/current-system/sw/bin/mkdir /home/sohamg/SyncNext";
-  #     ExecStart =
-  #       "${pkgs.rclone}/bin/rclone mount vpsnc: /home/sohamg/SyncNext";
+  #     User = "rclone";
+  #     ExecStartPre = "/run/current-system/sw/bin/mkdir -p /home/rclone/data";
+  #     ExecStart = ''${pkgs.rclone}/bin/rclone \
+  #     --config="/home/sohamg/.config/rclone/rclone.conf" \
+  #     mount vpsnc: /home/rclone/data \
+  #     '';
   #     ExecStop = "${pkgs.psmisc}/bin/killall rclone";
   #     Environment = [ "PATH=/run/wrappers/bin/:$PATH" ];
   #   };
@@ -275,12 +295,25 @@ in {
     mode = "0600";
   };
 
+  # systemd.user.timers."filesync" = {
+  #   wantedBy = [ "timers.target" ];
+  #   wants = ["network.target"];
+  #   timerConfig = {
+  #     OnCalendar="*-*-* *:*:30";
+  #     Unit="filesync.service"
+  #   };
+  # };
+
   systemd.mounts = [{
     description = "Nextcloud";
     what = "https://cloud.sohamg.xyz/remote.php/dav/files/sohamg/";
+    # what = "root@sohamg.xyz:/sftp"
     where = "/mnt/nextcloud";
     options = "noauto,user,uid=sohamg,gid=sohamg";
     type = "davfs";
+    mountConfig = {
+      TimeoutSec="30s";
+    };
   }];
 
   systemd.automounts = [{
