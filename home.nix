@@ -1,4 +1,4 @@
-{config, pkgs, ...}: 
+{config, pkgs, lib, ...}: 
 let
   emx = with pkgs;
       ((emacsPackagesFor emacsPgtk).emacsWithPackages
@@ -13,9 +13,21 @@ in
   programs.home-manager.enable = true;
   programs.direnv.enable = true;
   programs.direnv.nix-direnv.enable = true;
-  services.emacs.enable = true;
+  services.emacs.enable = false;
   services.flameshot.enable = true;
   programs.vscode.enable = true;
   programs.vscode.package = pkgs.vscode.fhs;
   programs.emacs.package = emx;
+  systemd.user.services.myemacs = {
+    Unit = {
+      After = [ "graphical-session-pre.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+
+    Service = {
+      ExecStart = "${emx}/bin/emacs --fg-daemon";
+    };
+
+    Install.WantedBy = lib.mkForce [ "graphical-session.target" ];
+  };
 }
