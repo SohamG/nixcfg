@@ -53,8 +53,8 @@ in {
     true; # Easiest to use and most distros use this by default.
 
   # Set your time zone.
-  time.timeZone = "America/Chicago";
-  # time.timeZone = "Asia/Kolkata";
+#  time.timeZone = "America/Chicago";
+  time.timeZone = "Asia/Kolkata";
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -80,12 +80,12 @@ in {
     xserver.enable = true;
     # xserver.videoDrivers = [ "nvidia" ];
     xserver.digimend.enable = true;
-    # greetd.enable = true;
-    # greetd.settings = {
-    #   default_session = {
-    #     command = "${pkgs.greetd.greetd}/bin/agreety --cmd runriver";
-    #   };
-    # };
+    greetd.enable = true;
+    greetd.settings = {
+      default_session = {
+        command = "${pkgs.greetd.greetd}/bin/agreety --cmd runriver";
+      };
+    };
     # Enable the GNOME Desktop Environment.
     # xserver.displayManager.gdm.enable = true;
     # xserver.desktopManager.gnome.enable = true;
@@ -107,7 +107,7 @@ in {
     # udev.packages = with pkgs; [ gnome.gnome-settings-daemon ];
     flatpak.enable = true;
     #emacs.enable = true;
-    emacs.defaultEditor = true;
+    # emacs.defaultEditor = true;
     # emacs.package = emx;
 
     avahi = {
@@ -123,6 +123,7 @@ in {
     davfs2.extraConfig =
       ''cache_size 500
         gui_optimize 1
+        ignore_dav_header 1
         use_locks 0
         file_refresh 60
         dir_refresh 60
@@ -290,10 +291,10 @@ in {
 
   fonts.fonts = with pkgs; [ corefonts ];
 
-  environment.etc."davfs2/secrets" = {
-    text = "${builtins.readFile "/home/sohamg/nixcfg/system/davsecret"}";
-    mode = "0600";
-  };
+ environment.etc."davfs2/secrets" = {
+   text = "${builtins.readFile "/home/sohamg/nixcfg/system/davsecret"}";
+   mode = "0600";
+ };
 
   # systemd.user.timers."filesync" = {
   #   wantedBy = [ "timers.target" ];

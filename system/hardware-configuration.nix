@@ -13,17 +13,7 @@
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
-  fileSystems."/" =
-    { device = "/dev/disk/by-uuid/75af254f-8ca2-4c7e-8a3a-56184c782f91";
-      fsType = "ext4";
-    };
-
-  fileSystems."/home" =
-    { device = "/dev/disk/by-uuid/3641fdef-f9b3-4fff-8376-dfd2c33be739";
-      fsType = "ext4";
-#      neededForBoot = true;
-    };
-  boot.initrd.luks.devices."linux-home".device = "/dev/disk/by-uuid/5fc84ab3-bcfe-4ba3-ae48-c66cccd948f2";
+#  boot.initrd.luks.devices."linux-home".device = "/dev/disk/by-uuid/5fc84ab3-bcfe-4ba3-ae48-c66cccd948f2";
 
 
   # boot.initrd.luks.devices."newssd" = {
@@ -34,13 +24,23 @@
     { device = "/dev/disk/by-uuid/BA9E-0400";
       fsType = "vfat";
     };
-  fileSystems."/newssd" =
+#  fileSystems."/newssd" =
+#    { device = "/dev/disk/by-uuid/e4e79cb6-b2be-4298-8717-36c2ff29be74";
+#      fsType = "btrfs";
+#    };
+
+#  boot.initrd.luks.devices."newssd".device = "/dev/disk/by-uuid/a32f7710-b4a6-4f9b-b03f-99ee92397185";
+
+fileSystems."/" =
+    { device = "/dev/disk/by-uuid/75af254f-8ca2-4c7e-8a3a-56184c782f91";
+      fsType = "ext4";
+    };
+
+  fileSystems."/home" =
     { device = "/dev/disk/by-uuid/e4e79cb6-b2be-4298-8717-36c2ff29be74";
       fsType = "btrfs";
     };
-
-  boot.initrd.luks.devices."newssd".device = "/dev/disk/by-uuid/a32f7710-b4a6-4f9b-b03f-99ee92397185";
-
+  boot.initrd.luks.devices."actual-home".device = "/dev/disk/by-uuid/a32f7710-b4a6-4f9b-b03f-99ee92397185";
 
 
 #  swapDevices = [ ];
