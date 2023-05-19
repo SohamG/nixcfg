@@ -103,7 +103,7 @@ in {
 
     # Enable the OpenSSH daemon.
     openssh.enable = true;
-    openssh.settings.PasswordAuthentication = false;
+    # openssh.settings.PasswordAuthentication = false;
     # udev.packages = with pkgs; [ gnome.gnome-settings-daemon ];
     flatpak.enable = true;
     #emacs.enable = true;
@@ -218,9 +218,9 @@ in {
     XDG_DATA_DIRS = [ "/var/lib/flatpak/exports/share" "/home/sohamg/.local/share/flatpak/exports/share"];
   };
   programs.command-not-found.enable = true;
-  qt.enable = true;
-  qt.style = "adwaita-dark";
-  qt.platformTheme = "kde";
+  # qt.enable = true;
+  # qt.style = "adwaita-dark";
+  # qt.platformTheme = "kde";
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
