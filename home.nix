@@ -1,10 +1,11 @@
 {config, pkgs, lib, ...}: 
 let
   emx = with pkgs;
-      ((emacsPackagesFor emacsPgtk).emacsWithPackages
+      ((emacsPackagesFor pkgs.emacs-gtk).emacsWithPackages
         (epkgs: [ epkgs.vterm ]));
 in
 {
+  home.enableNixpkgsReleaseCheck = false;
   home.username = "sohamg";
   home.homeDirectory = "/home/sohamg";
   home.packages = with pkgs; [
@@ -34,6 +35,8 @@ in
   services.emacs.enable = false;
   services.flameshot.enable = true;
   programs.vscode.enable = true;
+  programs.fzf.enable = true;
+  programs.fzf.enableZshIntegration = true;
   programs.vscode.package = pkgs.vscode.fhs;
   programs.emacs.package = emx;
   systemd.user.services.myemacs = {
