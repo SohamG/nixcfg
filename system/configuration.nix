@@ -53,8 +53,8 @@ in {
     true; # Easiest to use and most distros use this by default.
 
   # Set your time zone.
-#  time.timeZone = "America/Chicago";
-  time.timeZone = "Asia/Kolkata";
+ time.timeZone = "America/Chicago";
+  # time.timeZone = "Asia/Kolkata";
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -296,6 +296,17 @@ in {
    mode = "0600";
  };
 
+ security.pam.services = {
+   login.u2fAuth = true;
+   sudo.u2fAuth = true;
+ };
+
+ security.pam.u2f = {
+   cue = true;
+   enable = true;
+   control = "sufficient";
+ };
+
   # systemd.user.timers."filesync" = {
   #   wantedBy = [ "timers.target" ];
   #   wants = ["network.target"];
@@ -327,6 +338,7 @@ in {
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   networking.firewall.enable = false;
+
 
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you

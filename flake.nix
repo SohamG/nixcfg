@@ -2,11 +2,11 @@
   description = "Soham's Personal Nix Config!";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/22.11";
+    nixpkgs.url = "nixpkgs/23.05";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-    emacs-overlay.url = "github:nix-community/emacs-overlay";
-    emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
+    # emacs-overlay.url = "github:nix-community/emacs-overlay";
+    # emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
   };
   outputs = inputs@{ nixpkgs, home-manager, self, ... }:
     let
@@ -14,7 +14,7 @@
       pkgs = import nixpkgs {
         inherit system;
         config = { allowUnfree = true; };
-        overlays = [ (import self.inputs.emacs-overlay) ];
+        # overlays = [ (import self.inputs.emacs-overlay) ];
       };
     in {
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
