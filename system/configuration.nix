@@ -73,6 +73,32 @@ in {
   xdg.portal.extraPortals = with pkgs; [xdg-desktop-portal-kde];
 
   services = {
+    acpid.enable = true;
+    acpid.handlers = {
+      ac-power = {
+        event = "ac_adapter/*";
+        action=''
+        vals=($1)  # space separated string to array of multiple values
+        case ''${vals[3]} in
+            00000000)
+                echo unplugged >> /tmp/acpi.log
+                ${pkgs.intel-gpu-tools}/bin/intel_gpu_frequency -m ||
+                echo "unplug error" >> /tmp/acpi.log &&
+                echo "set intel gpu freq max"
+                ;;
+            00000001)
+                echo plugged in >> /tmp/acpi.log
+                ${pkgs.intel-gpu-tools}/bin/intel_gpu_frequency -d ||
+                echo "unplug error" >> /tmp/acpi.log &&
+                echo "set intel gpu freq defaults"
+                ;;
+            *)
+                echo unknown >> /tmp/acpi.log
+                ;;
+        esac
+        '';
+      };
+    };
 
     # Enable SSD FS Trim for SSD Goodness
     fstrim.enable = true;
