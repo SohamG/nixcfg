@@ -14,7 +14,7 @@ in
     gnumake coreutils
     iputils bind ripgrep
     chromium
-    fira-code fira-code-symbols
+    fira-code fira-code-symbols fira
     unzip btrfs-progs
     squashfsTools
     qdirstat keepassxc
@@ -39,6 +39,7 @@ in
   programs.fzf.enableZshIntegration = true;
   programs.vscode.package = pkgs.vscode.fhs;
   programs.emacs.package = emx;
+  programs.go.enable = true;
   systemd.user.services.myemacs = {
     Unit = {
       After = [ "graphical-session-pre.target" ];
