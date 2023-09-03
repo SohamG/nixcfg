@@ -25,6 +25,7 @@ in
     openssl
     kubectl kubernetes-helm
     traceroute screen
+    pandoc
   ];
   # bug
   manual.manpages.enable=false;
