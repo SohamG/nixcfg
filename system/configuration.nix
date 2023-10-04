@@ -131,6 +131,7 @@ in {
     openssh.enable = true;
     # openssh.settings.PasswordAuthentication = false;
     # udev.packages = with pkgs; [ gnome.gnome-settings-daemon ];
+    udev.packages = with pkgs; [ yubikey-personalization ];
     flatpak.enable = true;
     #emacs.enable = true;
     # emacs.defaultEditor = true;

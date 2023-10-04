@@ -13,7 +13,7 @@
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
-#  boot.initrd.luks.devices."linux-home".device = "/dev/disk/by-uuid/5fc84ab3-bcfe-4ba3-ae48-c66cccd948f2";
+ boot.initrd.luks.devices."old-home".device = "/dev/disk/by-uuid/5fc84ab3-bcfe-4ba3-ae48-c66cccd948f2";
 
 
   # boot.initrd.luks.devices."newssd" = {
@@ -24,10 +24,10 @@
     { device = "/dev/disk/by-uuid/BA9E-0400";
       fsType = "vfat";
     };
-#  fileSystems."/newssd" =
-#    { device = "/dev/disk/by-uuid/e4e79cb6-b2be-4298-8717-36c2ff29be74";
-#      fsType = "btrfs";
-#    };
+ fileSystems."/oldssd" =
+   { device = "/dev/disk/by-uuid/3641fdef-f9b3-4fff-8376-dfd2c33be739";
+     fsType = "ext4";
+   };
 
 #  boot.initrd.luks.devices."newssd".device = "/dev/disk/by-uuid/a32f7710-b4a6-4f9b-b03f-99ee92397185";
 
