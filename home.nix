@@ -1,8 +1,9 @@
 {config, pkgs, lib, ...}: 
 let
-  emx = with pkgs;
-      ((emacsPackagesFor pkgs.emacs-gtk).emacsWithPackages
-        (epkgs: [ epkgs.vterm ]));
+  # emx = with pkgs;
+  #     ((emacsPackagesFor pkgs.emacs-pgtk).emacsWithPackages
+  #       (epkgs: [ epkgs.elpaPackages.vterm ]));
+  emx = with pkgs;emacs-pgtk;
 in
 {
   home.enableNixpkgsReleaseCheck = false;
@@ -25,7 +26,8 @@ in
     openssl
     kubectl kubernetes-helm
     traceroute screen
-    pandoc
+    pandoc file vagrant
+    pass-wayland
   ];
   # bug
   manual.manpages.enable=false;
@@ -52,5 +54,33 @@ in
     };
 
     Install.WantedBy = lib.mkForce [ "graphical-session.target" ];
+  };
+  # Email
+
+  programs.mbsync.enable = true;
+  programs.msmtp.enable = true;
+  programs.notmuch = {
+    enable = true;
+  };
+  accounts.email = {
+    accounts.gmail = {
+      flavor = "gmail.com";
+      address = "sohamg2@gmail.com";
+      imap.host = "imap.gmail.com";
+      mbsync = {
+        enable = true;
+        create = "maildir";
+        extraConfig.channel = {
+          MaxMessages = 1000;
+          ExpireUnread = "yes";
+        };
+      };
+      notmuch.enable = true;
+      primary = true;
+      realName = "Soham S Gumaste";
+      passwordCommand = "pass show emacsemail";
+      userName = "sohamg2@gmail.com";
+      msmtp.enable = true;
+    };
   };
 }
