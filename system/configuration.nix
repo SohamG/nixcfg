@@ -40,11 +40,18 @@ in {
     };
     kernelPackages = pkgs.linuxPackages;
     extraModulePackages = with pkgs.linuxPackages; [ v4l2loopback.out digimend.out];
-    kernelModules = [ "v4l2loopback" "snd-loop" "digimend" ];
+    kernelModules = [ "v4l2loopback" "snd-loop" "digimend" "kvm-intel"];
     plymouth.enable = true;
     plymouth.theme = "breeze";
   };
 
+  # Make imperative nixpkgs be same as the flake.
+  nix.registry = {
+    nixpkgs.to = {
+      type = "path";
+      path = pkgs.path;
+    };
+  };
 
   # networking.hostName = "nixos"; # Define your hostname.
   # Pick only one of the below networking options.
@@ -155,11 +162,16 @@ in {
         file_refresh 60
         dir_refresh 60
         buf_size 256'';
+    zerotierone = {
+      enable = true;
+    };
   };
 
   # Enable sound.
   sound.enable = true;
   hardware.pulseaudio.enable = true;
+  hardware.opengl.enable = true;
+  hardware.opengl.driSupport32Bit = true;
 
   # hardware.nvidia.prime = {
   #   offload.enable = true;
@@ -190,6 +202,8 @@ in {
       "docker"
       "networkmanager"
       "dialout"
+      "qemu-libvirtd "
+      "libvirtd"
     ]; # Enable ‘sudo’ for the user.
     # Good luck hackers ;)
     hashedPassword =
@@ -253,7 +267,7 @@ in {
   # programs.mtr.enable = true;
   programs.gnupg.agent = {
     enable = true;
-    pinentryFlavor = "qt";
+    pinentryFlavor = "emacs";
     #  enableSSHSupport = true;
   };
   programs.kdeconnect.enable = true;
@@ -262,6 +276,7 @@ in {
   # List services that you want to enable:
   programs.ssh.startAgent = true;
   virtualisation.docker.enable = true;
+  virtualisation.libvirtd.enable = true;
   virtualisation.virtualbox.host.enable = true;
   users.extraGroups.vboxusers.members = [ "sohamg" ];
 
