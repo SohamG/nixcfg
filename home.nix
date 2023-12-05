@@ -28,6 +28,7 @@ in
     traceroute screen
     pandoc file vagrant
     pass-wayland
+    roswell
   ];
   # bug
   manual.manpages.enable=false;
@@ -73,6 +74,7 @@ in
         extraConfig.channel = {
           MaxMessages = 1000;
           ExpireUnread = "yes";
+          # Patterns = "* !allmail !sentmail";
         };
       };
       notmuch.enable = true;
@@ -82,5 +84,19 @@ in
       userName = "sohamg2@gmail.com";
       msmtp.enable = true;
     };
+  };
+
+  systemd.user.timers."mailsync" = {
+    # enable = true;
+    Unit.Description = "Run service to fetch email";
+    Install.WantedBy = [ "timers.target" ];
+    Install.Wants = ["network.target"];
+    Timer.OnCalendar="*-*-* *:30:*";
+    Timer.Unit="mailsync.service";
+  };
+
+  systemd.user.services."mailsync" = {
+    Service.ExecStartPre = "${pkgs.isync}/bin/mbsync -a";
+    Service.ExecStart = "${pkgs.mu}/bin/mu index";
   };
 }

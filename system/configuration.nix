@@ -245,6 +245,8 @@ in {
     xdg-desktop-portal-kde
     corefonts
     btrfs-progs
+    pinentry-qt
+    kwalletcli
   ];
   documentation.dev.enable = true;
   environment.sessionVariables = rec {
@@ -267,7 +269,7 @@ in {
   # programs.mtr.enable = true;
   programs.gnupg.agent = {
     enable = true;
-    pinentryFlavor = "emacs";
+    pinentryFlavor = "qt";
     #  enableSSHSupport = true;
   };
   programs.kdeconnect.enable = true;
@@ -275,6 +277,9 @@ in {
   programs.nix-ld.enable = true;
   # List services that you want to enable:
   programs.ssh.startAgent = true;
+  programs.ssh.extraConfig = ''
+  AddKeysToAgent yes
+  '';
   virtualisation.docker.enable = true;
   virtualisation.libvirtd.enable = true;
   virtualisation.virtualbox.host.enable = true;
