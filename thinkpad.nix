@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ pkgs, nixpkgs, ... }@inp:
+{ pkgs, nixpkgs, modulesPath, ... }@inp:
 
 let
   my-nix-switch = pkgs.writeShellScriptBin "my-nix-switch" ''
@@ -26,10 +26,8 @@ let
            XKB_DEFAULT_OPTIONS=ctrl:nocaps dbus-run-session ${pkgs.river}/bin/river
   '';
 in {
-  imports = [ # Include the results of the hardware scan.
-    ./hardware-configuration.nix
-  ];
   
+
   # Use the systemd-boot EFI boot loader.
   boot = {
     loader = {
@@ -60,7 +58,7 @@ in {
   environment.etc."nix/path/nixpkgs".source = nixpkgs;
   environment.etc."nix/path/nixpkgs-unstable".source = inp.nixpkgs-unstable;
 
-  # networking.hostName = "nixos"; # Define your hostname.
+  networking.hostName = "twinkpad"; # Define your hostname.
   # Pick only one of the below networking options.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
   networking.networkmanager.enable =
@@ -120,12 +118,12 @@ in {
     xserver.enable = true;
     # xserver.videoDrivers = [ "nvidia" ];
     xserver.digimend.enable = true;
-    greetd.enable = true;
-    greetd.settings = {
-      default_session = {
-        command = "${pkgs.greetd.greetd}/bin/agreety --cmd runriver";
-      };
-    };
+    # greetd.enable = true;
+    # greetd.settings = {
+    #   default_session = {
+    #     command = "${pkgs.greetd.greetd}/bin/agreety --cmd runriver";
+    #   };
+    # };
     # Enable the GNOME Desktop Environment.
     # xserver.displayManager.gdm.enable = true;
     # xserver.desktopManager.gnome.enable = true;
@@ -244,8 +242,6 @@ in {
     man-pages
     man-pages-posix
     nvidia-offload
-    river
-    runriver
     home-manager
     brun
     xdg-desktop-portal-wlr
@@ -406,7 +402,7 @@ in {
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "22.05"; # Did you read the comment?
+  system.stateVersion = "23.11"; # Did you read the comment?
 
 }
 

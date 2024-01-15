@@ -25,10 +25,14 @@ in
     python310
     openssl
     kubectl kubernetes-helm
-    traceroute screen
+     screen
     pandoc file vagrant
     pass-wayland
     roswell
+    emx
+    zerotierone
+    inetutils pciutils dnsutils
+    texliveFull mupdf
   ];
   # bug
   manual.manpages.enable=false;
