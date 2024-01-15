@@ -27,6 +27,9 @@ let
   '';
 in {
   
+  imports = [ # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+  ];
 
   # Use the systemd-boot EFI boot loader.
   boot = {

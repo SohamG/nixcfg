@@ -26,7 +26,7 @@
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
         inherit system;
         modules = [
-          (import ./system/configuration.nix {
+          (import ./dell/configuration.nix {
             inherit pkgs;
             inherit system;
             inherit (inputs) nixpkgs;
@@ -37,7 +37,7 @@
 
       nixosConfigurations.twinkpad = nixpkgs.lib.nixosSystem {
         inherit system;
-        modules = [./thinkpad.nix];
+        modules = [./t495/thinkpad.nix];
         specialArgs = {
           inherit (inputs) nixpkgs-unstable;
           inherit (inputs) nixpkgs;
