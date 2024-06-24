@@ -40,8 +40,8 @@ in {
         systemd-boot.consoleMode = "auto";
     };
     kernelPackages = pkgs.linuxPackages;
-    extraModulePackages = with pkgs.linuxPackages; [ v4l2loopback.out digimend.out];
-    kernelModules = [ "v4l2loopback" "snd-loop" "digimend" "kvm-intel"];
+    extraModulePackages = with pkgs.linuxPackages; [ v4l2loopback.out digimend.out ];
+    kernelModules = [ "v4l2loopback" "snd-loop" "digimend" "kvm-intel" "snd_seq_midi"];
     plymouth.enable = true;
     plymouth.theme = "breeze";
   };
@@ -61,7 +61,7 @@ in {
   environment.etc."nix/path/nixpkgs".source = nixpkgs;
   environment.etc."nix/path/nixpkgs-unstable".source = inp.nixpkgs-unstable;
 
-  networking.hostName = "twinkpad"; # Define your hostname.
+  networking.hostName = "thonker"; # Define your hostname.
   # Pick only one of the below networking options.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
   networking.networkmanager.enable =
@@ -89,31 +89,31 @@ in {
 
   services = {
     acpid.enable = true;
-    acpid.handlers = {
-      ac-power = {
-        event = "ac_adapter/*";
-        action=''
-        vals=($1)  # space separated string to array of multiple values
-        case ''${vals[3]} in
-            00000000)
-                echo unplugged >> /tmp/acpi.log
-                ${pkgs.intel-gpu-tools}/bin/intel_gpu_frequency -m ||
-                echo "unplug error" >> /tmp/acpi.log &&
-                echo "set intel gpu freq max"
-                ;;
-            00000001)
-                echo plugged in >> /tmp/acpi.log
-                ${pkgs.intel-gpu-tools}/bin/intel_gpu_frequency -d ||
-                echo "unplug error" >> /tmp/acpi.log &&
-                echo "set intel gpu freq defaults"
-                ;;
-            *)
-                echo unknown >> /tmp/acpi.log
-                ;;
-        esac
-        '';
-      };
-    };
+    # acpid.handlers = {
+    #   ac-power = {
+    #     event = "ac_adapter/*";
+    #     action=''
+    #     vals=($1)  # space separated string to array of multiple values
+    #     case ''${vals[3]} in
+    #         00000000)
+    #             echo unplugged >> /tmp/acpi.log
+    #             ${pkgs.intel-gpu-tools}/bin/intel_gpu_frequency -m ||
+    #             echo "unplug error" >> /tmp/acpi.log &&
+    #             echo "set intel gpu freq max"
+    #             ;;
+    #         00000001)
+    #             echo plugged in >> /tmp/acpi.log
+    #             ${pkgs.intel-gpu-tools}/bin/intel_gpu_frequency -d ||
+    #             echo "unplug error" >> /tmp/acpi.log &&
+    #             echo "set intel gpu freq defaults"
+    #             ;;
+    #         *)
+    #             echo unknown >> /tmp/acpi.log
+    #             ;;
+    #     esac
+    #     '';
+    #   };
+  # };
 
     # Enable SSD FS Trim for SSD Goodness
     fstrim.enable = true;
@@ -131,16 +131,16 @@ in {
     # xserver.displayManager.gdm.enable = true;
     # xserver.desktopManager.gnome.enable = true;
     # Try KDE LOL
-    xserver.displayManager.sddm.enable = true;
+    displayManager.sddm.enable = true;
     xserver.desktopManager.plasma5.enable = true;
 
     # Configure keymap in X11
-    xserver.layout = "us";
+    xserver.xkb.layout = "us";
 
     # Enable CUPS to print documents.
     printing.enable = true;
 
-    xserver.libinput.enable = true;
+    libinput.enable = true;
 
     # Enable the OpenSSH daemon.
     openssh.enable = true;
@@ -154,33 +154,69 @@ in {
 
     avahi = {
       enable = true;
-      nssmdns = true;
+      nssmdns4 = true;
       publish = { workstation = true; };
     };
 
-    # tlp.enable = true;
-    power-profiles-daemon.enable = true;
+    # https://github.com/linrunner/TLP/issues/436
+    tlp.enable = true;
+    tlp.settings = {
+      RUNTIME_PM_BLACKLIST="06:00.3 06:00.4";
+    };
+
+    power-profiles-daemon.enable = false;
 
     davfs2.enable = true;
-    davfs2.extraConfig =
-      ''cache_size 500
-        gui_optimize 1
-        ignore_dav_header 1
-        use_locks 0
-        file_refresh 60
-        dir_refresh 60
-        buf_size 256'';
+    davfs2.settings = {
+      globalSection = {
+        cache_size = 500;
+        gui_optimize = 1;
+        ignore_dav_header = 1;
+        use_locks = 0;
+        file_refresh = 60;
+        dir_refresh = 60;
+        buf_size = 256;
+      };
+    };
     zerotierone = {
       enable = true;
     };
+    fprintd = {
+      enable = true;
+    };
+
+    guix = {
+        enable = true;
+        extraArgs = ["--substitute-urls=https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://substitutes.nonguix.org"];
+    };
+  }; # services
+
+
+
+  powerManagement.enable = true;
+  # Enable sound.
+  # sound.enable = true;
+
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    # If you want to use JACK applications, uncomment this
+    jack.enable = true;
   };
 
-  # Enable sound.
-  sound.enable = true;
-  hardware.pulseaudio.enable = true;
+  # hardware.pulseaudio.enable = true;
   hardware.opengl.enable = true;
   hardware.opengl.driSupport32Bit = true;
-
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+    settings = {
+      General.Experimental = true;
+    };
+  };
   # hardware.nvidia.prime = {
   #   offload.enable = true;
 
@@ -212,6 +248,7 @@ in {
       "dialout"
       "qemu-libvirtd "
       "libvirtd"
+      "gamemode"
     ]; # Enable ‘sudo’ for the user.
     # Good luck hackers ;)
     hashedPassword =
@@ -254,6 +291,7 @@ in {
     pinentry-qt
     kwalletcli
     zerotierone
+    xwaylandvideobridge
   ];
   documentation.dev.enable = true;
   environment.sessionVariables = rec {
@@ -268,6 +306,9 @@ in {
     XDG_DATA_DIRS = [ "/var/lib/flatpak/exports/share" "/home/sohamg/.local/share/flatpak/exports/share"];
   };
   programs.command-not-found.enable = true;
+
+  programs.steam.enable = true;
+  programs.gamemode.enable = true;
   # qt.enable = true;
   # qt.style = "adwaita-dark";
   # qt.platformTheme = "kde";
@@ -276,7 +317,8 @@ in {
   # programs.mtr.enable = true;
   programs.gnupg.agent = {
     enable = true;
-    pinentryFlavor = "qt";
+    # pinentryFlavor = "qt";
+    pinentryPackage = pkgs.pinentry-qt;
     #  enableSSHSupport = true;
   };
   programs.kdeconnect.enable = true;
@@ -304,6 +346,8 @@ in {
     custom = "~/omz/";
   };
   programs.zsh.shellAliases = { nixre = "sudo nixos-rebuild switch"; };
+
+  programs.virt-manager.enable = true;
 
   # systemd.services.rcloneNextCloud = {
   #   wantedBy = [ "multi-user.target" ];
@@ -346,7 +390,7 @@ in {
   fonts.packages = with pkgs; [ corefonts ];
 
  environment.etc."davfs2/secrets" = {
-  text = "${builtins.readFile "/home/sohamg/nixcfg/system/davsecret"}";
+  text = "${builtins.readFile "/home/sohamg/nixcfg/t495/davsecret"}";
   mode = "0600";
  };
 

@@ -3,12 +3,13 @@
 
   inputs = {
     # Prefer using github: to prevent hash mismatches.
-    nixpkgs.url = "nixpkgs/23.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/master";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
   };
   outputs = inputs@{ nixpkgs, home-manager, self, ... }:
     let
@@ -35,9 +36,12 @@
         ];
       };
 
-      nixosConfigurations.twinkpad = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.thonker = nixpkgs.lib.nixosSystem {
         inherit system;
-        modules = [./t495/thinkpad.nix];
+        modules = [
+          ./t495/thinkpad.nix
+          inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t495
+        ];
         specialArgs = {
           inherit (inputs) nixpkgs-unstable;
           inherit (inputs) nixpkgs;
