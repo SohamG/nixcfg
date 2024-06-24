@@ -2,8 +2,8 @@
 let
   # emx = with pkgs;
   #     ((emacsPackagesFor pkgs.emacs-pgtk).emacsWithPackages
-  #       (epkgs: [ epkgs.elpaPackages.vterm ]));
-  emx = with pkgs;emacs-pgtk;
+  #       (epkgs: [ epkgs.vterm ]));
+  emx = with pkgs;emacs29-pgtk;
 in
 {
   home.enableNixpkgsReleaseCheck = false;
@@ -32,7 +32,7 @@ in
     emx
     zerotierone
     inetutils pciutils dnsutils
-    texliveFull mupdf
+    texliveFull mupdf imagemagick
   ];
   # bug
   manual.manpages.enable=false;
@@ -60,47 +60,55 @@ in
 
     Install.WantedBy = lib.mkForce [ "graphical-session.target" ];
   };
-  # Email
 
-  programs.mbsync.enable = true;
-  programs.msmtp.enable = true;
-  programs.notmuch = {
-    enable = true;
-  };
-  accounts.email = {
-    accounts.gmail = {
-      flavor = "gmail.com";
-      address = "sohamg2@gmail.com";
-      imap.host = "imap.gmail.com";
-      mbsync = {
-        enable = true;
-        create = "maildir";
-        extraConfig.channel = {
-          MaxMessages = 1000;
-          ExpireUnread = "yes";
-          # Patterns = "* !allmail !sentmail";
-        };
-      };
-      notmuch.enable = true;
-      primary = true;
-      realName = "Soham S Gumaste";
-      passwordCommand = "pass show emacsemail";
-      userName = "sohamg2@gmail.com";
-      msmtp.enable = true;
+  dconf.settings = {
+    "org/virt-manager/virt-manager/connections" = {
+      autoconnect = ["qemu:///system"];
+      uris = ["qemu:///system"];
     };
   };
+  
+  # Email
 
-  systemd.user.timers."mailsync" = {
-    # enable = true;
-    Unit.Description = "Run service to fetch email";
-    Install.WantedBy = [ "timers.target" ];
-    Install.Wants = ["network.target"];
-    Timer.OnCalendar="*-*-* *:30:*";
-    Timer.Unit="mailsync.service";
-  };
+#  programs.mbsync.enable = true;
+#  programs.msmtp.enable = true;
+#  programs.notmuch = {
+#    enable = true;
+#  };
+#  accounts.email = {
+#    accounts.gmail = {
+#      flavor = "gmail.com";
+#      address = "sohamg2@gmail.com";
+#      imap.host = "imap.gmail.com";
+#      mbsync = {
+#        enable = true;
+#        create = "maildir";
+#        extraConfig.channel = {
+#          MaxMessages = 1000;
+#          ExpireUnread = "yes";
+#          # Patterns = "* !allmail !sentmail";
+#        };
+#      };
+#      notmuch.enable = true;
+#      primary = true;
+#      realName = "Soham S Gumaste";
+#      passwordCommand = "pass show emacsemail";
+#      userName = "sohamg2@gmail.com";
+#      msmtp.enable = true;
+#    };
+#  };
 
-  systemd.user.services."mailsync" = {
-    Service.ExecStartPre = "${pkgs.isync}/bin/mbsync -a";
-    Service.ExecStart = "${pkgs.mu}/bin/mu index";
-  };
+#  systemd.user.timers."mailsync" = {
+#    # enable = true;
+#    Unit.Description = "Run service to fetch email";
+#    Install.WantedBy = [ "timers.target" ];
+#    Install.Wants = ["network.target"];
+#    Timer.OnCalendar="*-*-* *:30:*";
+#    Timer.Unit="mailsync.service";
+#  };
+
+#  systemd.user.services."mailsync" = {
+#    Service.ExecStartPre = "${pkgs.isync}/bin/mbsync -a";
+#    Service.ExecStart = "${pkgs.mu}/bin/mu index";
+#  };
 }
