@@ -1,9 +1,9 @@
 {config, pkgs, lib, ...}: 
 let
-  # emx = with pkgs;
-  #     ((emacsPackagesFor pkgs.emacs-pgtk).emacsWithPackages
-  #       (epkgs: [ epkgs.vterm ]));
-  emx = with pkgs;emacs29-pgtk;
+  emx = with pkgs;
+      ((emacsPackagesFor pkgs.emacs-pgtk).emacsWithPackages
+        (epkgs: [ epkgs.vterm ]));
+  # emx = with pkgs;emacs29-pgtk;
 in
 {
   home.enableNixpkgsReleaseCheck = false;

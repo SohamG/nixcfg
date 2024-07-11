@@ -39,6 +39,8 @@ in {
         systemd-boot.configurationLimit = 5;
         systemd-boot.consoleMode = "auto";
     };
+    # psmouse.proto=bare
+    # kernel param to make trackpoint be a mouse.
     kernelPackages = pkgs.linuxPackages;
     extraModulePackages = with pkgs.linuxPackages; [ v4l2loopback.out digimend.out ];
     kernelModules = [ "v4l2loopback" "snd-loop" "digimend" "kvm-intel" "snd_seq_midi"];
@@ -147,6 +149,12 @@ in {
     # openssh.settings.PasswordAuthentication = false;
     # udev.packages = with pkgs; [ gnome.gnome-settings-daemon ];
     udev.packages = with pkgs; [ yubikey-personalization ];
+
+    # Combat trackpoint drift.
+    udev.extraRules = ''
+    ACTION=="add", SUBSYSTEM=="input", ATTR{name}=="TPPS/2 Elan TrackPoint", ATTR{device/drift_time}="25"
+    '';
+    
     flatpak.enable = true;
     #emacs.enable = true;
     # emacs.defaultEditor = true;
@@ -435,7 +443,8 @@ in {
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
-  networking.firewall.enable = false;
+  networking.firewall.enable = true;
+  networking.nftables.enable = true;
 
 
   # Copy the NixOS configuration file and link it from the resulting system
