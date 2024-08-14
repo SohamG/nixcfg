@@ -41,6 +41,7 @@ in {
     };
     # psmouse.proto=bare
     # kernel param to make trackpoint be a mouse.
+    # kernelParams = ["psmouse.proto=bare"];
     kernelPackages = pkgs.linuxPackages;
     extraModulePackages = with pkgs.linuxPackages; [ v4l2loopback.out digimend.out ];
     kernelModules = [ "v4l2loopback" "snd-loop" "digimend" "kvm-intel" "snd_seq_midi"];
@@ -117,6 +118,15 @@ in {
     #   };
   # };
 
+    keyd = {
+      enable = true;
+      keyboards.default.settings = {
+        main = {
+          capslock = "overload(control, control)";
+          leftshift = "noop";
+        };
+      };
+    };
     # Enable SSD FS Trim for SSD Goodness
     fstrim.enable = true;
     # Enable the X11 windowing system.
@@ -134,10 +144,45 @@ in {
     # xserver.desktopManager.gnome.enable = true;
     # Try KDE LOL
     displayManager.sddm.enable = true;
-    xserver.desktopManager.plasma5.enable = true;
+    desktopManager.plasma6.enable = true;
 
     # Configure keymap in X11
     xserver.xkb.layout = "us";
+
+    # xkb_keymap {
+    #     xkb_keycodes { include "evdev+aliases(qwerty)" };
+    #     xkb_types { include "complete" };
+    #     xkb_compat { include "complete" };
+    #     xkb_symbols {
+    #         include "pc+us"
+    #         key <LFSH> { [ NoSymbol ] };
+    #     };
+    #     xkb_geometry { include "pc(pc105)" };
+    # };
+
+    xserver.xkb.extraLayouts."noShift" = {
+      compatFile = pkgs.writeText "noshift_compat" ''
+                 xkb_compat "noShift" { include "complete" };
+      '';
+      keycodesFile = pkgs.writeText "noshift_keycodes" ''
+                 xkb_keycodes "noShift" { include "evdev+aliases(qwerty)" };
+      '';
+      typesFile = pkgs.writeText "noshift_types" ''
+                 xkb_types "noShift" { include "complete" };
+      '';
+      symbolsFile = pkgs.writeText "noshift_symbols" ''
+                 xkb_symbols "noShift" {
+                            include "pc+us"
+                            key <LFSH> { [ NoSymbol ]};
+                 };
+      '';
+      geometryFile = pkgs.writeText "noshift_compat" ''
+                 xkb_geometry "noShift" { include "pc(pc105)" };
+      '';
+      description = "Disable left shift";
+      languages = ["eng"];
+
+    };
 
     # Enable CUPS to print documents.
     printing.enable = true;
@@ -152,7 +197,8 @@ in {
 
     # Combat trackpoint drift.
     udev.extraRules = ''
-    ACTION=="add", SUBSYSTEM=="input", ATTR{name}=="TPPS/2 Elan TrackPoint", ATTR{device/drift_time}="25"
+    ACTION=="add", SUBSYSTEM=="input", ATTR{name}=="TPPS/2 Elan TrackPoint", ATTR{device/drift_time}="30"
+    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3434", ATTRS{idProduct}=="01e0", MODE="0660", GROUP="users", TAG+="uaccess", TAG+="udev-acl"
     '';
     
     flatpak.enable = true;
@@ -189,9 +235,9 @@ in {
     zerotierone = {
       enable = true;
     };
-    fprintd = {
-      enable = true;
-    };
+    # fprintd = {
+    #   enable = true;
+    # };
 
     guix = {
         enable = true;
@@ -300,6 +346,8 @@ in {
     kwalletcli
     zerotierone
     xwaylandvideobridge
+    xorg.xkbcomp
+    keyd
   ];
   documentation.dev.enable = true;
   environment.sessionVariables = rec {
@@ -336,8 +384,13 @@ in {
   programs.ssh.startAgent = true;
   programs.ssh.extraConfig = ''
   AddKeysToAgent yes
+  EnableSSHKeysign yes
   '';
-  virtualisation.docker.enable = true;
+  virtualisation.docker.enable = false;
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = true;
+  };
   virtualisation.libvirtd.enable = true;
   virtualisation.virtualbox.host.enable = true;
   users.extraGroups.vboxusers.members = [ "sohamg" ];
@@ -401,6 +454,7 @@ in {
   text = "${builtins.readFile "/home/sohamg/nixcfg/t495/davsecret"}";
   mode = "0600";
  };
+
 
  security.pam.services = {
    login.u2fAuth = true;
