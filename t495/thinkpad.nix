@@ -329,6 +329,7 @@ in {
     # gnomeExtensions.appindicator
     # gnomeExtensions.gsconnect
     rclone
+    restic
     psmisc
     sqlite
     networkmanager-openvpn
@@ -348,6 +349,7 @@ in {
     xwaylandvideobridge
     xorg.xkbcomp
     keyd
+    texliveFull
   ];
   documentation.dev.enable = true;
   environment.sessionVariables = rec {
@@ -403,10 +405,10 @@ in {
   programs.zsh.ohMyZsh = {
     enable = true;
     plugins = [ "git" "man" "fzf" "vi-mode" ];
-    theme = "agnoster";
+    theme = "candy";
     custom = "~/omz/";
   };
-  programs.zsh.shellAliases = { nixre = "sudo nixos-rebuild switch"; };
+  programs.zsh.shellAliases = { nixre = "sudo nixos-rebuild switch --flake .#thonker --impure"; };
 
   programs.virt-manager.enable = true;
 
