@@ -25,6 +25,10 @@ let
            XDG_CURRENT_DESKTOP=sway
            XKB_DEFAULT_OPTIONS=ctrl:nocaps dbus-run-session ${pkgs.river}/bin/river
   '';
+
+  pkgsU = import inp.nixpkgs-unstable {
+    system = pkgs.system;
+  };
 in {
   
   imports = [ # Include the results of the hardware scan.
@@ -34,16 +38,22 @@ in {
   # Use the systemd-boot EFI boot loader.
   boot = {
     loader = {
-        systemd-boot.enable = true;
+        # systemd-boot.enable = pkgs.lib.mkForce false;
+        systemd-boot.enable = pkgs.lib.mkForce false;
         efi.canTouchEfiVariables = true;
         systemd-boot.configurationLimit = 5;
         systemd-boot.consoleMode = "auto";
     };
+
+    lanzaboote = {
+        enable = true;
+        pkiBundle = "/etc/secureboot";
+    };
     # psmouse.proto=bare
     # kernel param to make trackpoint be a mouse.
     # kernelParams = ["psmouse.proto=bare"];
-    kernelPackages = pkgs.linuxPackages;
-    extraModulePackages = with pkgs.linuxPackages; [ v4l2loopback.out digimend.out ];
+    kernelPackages = pkgsU.linuxPackages;
+    extraModulePackages = with pkgsU.linuxPackages; [ v4l2loopback.out digimend.out ];
     kernelModules = [ "v4l2loopback" "snd-loop" "digimend" "kvm-intel" "snd_seq_midi"];
     plymouth.enable = true;
     plymouth.theme = "breeze";
@@ -350,6 +360,7 @@ in {
     xorg.xkbcomp
     keyd
     texliveFull
+    pkgsU.sbctl
   ];
   documentation.dev.enable = true;
   environment.sessionVariables = rec {

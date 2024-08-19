@@ -10,6 +10,12 @@
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+    lanzaboote = {
+      url = "github:nix-community/lanzaboote/v0.4.1";
+
+      # Optional but recommended to limit the size of your system closure.
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
   };
   outputs = inputs@{ nixpkgs, home-manager, self, ... }:
     let
@@ -27,6 +33,7 @@
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
         inherit system;
         modules = [
+
           (import ./dell/configuration.nix {
             inherit pkgs;
             inherit system;
@@ -39,6 +46,7 @@
       nixosConfigurations.thonker = nixpkgs.lib.nixosSystem {
         inherit system;
         modules = [
+          inputs.lanzaboote.nixosModules.lanzaboote
           ./t495/thinkpad.nix
           inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t495
         ];
