@@ -15,7 +15,7 @@ in
     gnumake coreutils
     iputils bind ripgrep
     chromium
-    fira-code fira-code-symbols fira
+    fira fira-code
     unzip btrfs-progs
     squashfsTools
     qdirstat keepassxc
@@ -29,10 +29,11 @@ in
     pandoc file vagrant
     pass-wayland
     roswell
-    emx
     zerotierone
     inetutils pciutils dnsutils
     texliveFull mupdf imagemagick
+    aspell aspellDicts.en aspellDicts.en-science aspellDicts.en-computers
+    git yadm
   ];
   # bug
   manual.manpages.enable=false;
