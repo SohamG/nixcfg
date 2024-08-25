@@ -60,16 +60,6 @@ in {
   };
 
   # Make imperative nixpkgs be same as the flake.
-  nix = {
-    nixPath = [ "/etc/nix/path"];
-    registry = {
-      # nixpkgs.to = {
-      #   type = "path";
-      #   path = pkgs.path;
-      # };
-      nixpkgs.flake = nixpkgs;
-    };
-  };
 
   environment.etc."nix/path/nixpkgs".source = nixpkgs;
   environment.etc."nix/path/nixpkgs-unstable".source = inp.nixpkgs-unstable;
@@ -262,6 +252,11 @@ in {
   # sound.enable = true;
 
   security.rtkit.enable = true;
+  security.tpm2 = {
+    enable = true;
+    abrmd.enable = true;
+    pkcs11.enable=true;
+  };
   services.pipewire = {
     enable = true;
     alsa.enable = true;
@@ -313,6 +308,7 @@ in {
       "qemu-libvirtd "
       "libvirtd"
       "gamemode"
+      "tss"
     ]; # Enable ‘sudo’ for the user.
     # Good luck hackers ;)
     hashedPassword =
@@ -360,8 +356,7 @@ in {
     xorg.xkbcomp
     keyd
     texliveFull
-    pkgsU.sbctl
-  ];
+  ] ++ [ pkgsU.sbctl pkgsU.tpm2-tools pkgsU.tpm2-tss ];
   documentation.dev.enable = true;
   environment.sessionVariables = rec {
     # Firefox wayland
@@ -441,7 +436,6 @@ in {
   # };
   nixpkgs.config.allowUnfree = true;
   nix = {
-    package = pkgs.nixVersions.stable;
     extraOptions = ''
       experimental-features = nix-command flakes
       keep-outputs = true
@@ -449,6 +443,16 @@ in {
     '';
     settings.trusted-users = ["root" "sohamg"];
     settings.sandbox = true;
+
+    package = pkgs.nixVersions.nix_2_23;
+    nixPath = [ "/etc/nix/path"];
+    registry = {
+      # nixpkgs.to = {
+      #   type = "path";
+      #   path = pkgs.path;
+      # };
+      nixpkgs.flake = nixpkgs;
+    };
   };
 
   swapDevices = [{
