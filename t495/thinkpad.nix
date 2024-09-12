@@ -49,6 +49,13 @@ in {
         enable = true;
         pkiBundle = "/etc/secureboot";
     };
+
+    initrd = {
+      systemd={
+        enable = true;
+        enableTpm2 = true;
+      };
+    };
     # psmouse.proto=bare
     # kernel param to make trackpoint be a mouse.
     # kernelParams = ["psmouse.proto=bare"];
@@ -91,6 +98,11 @@ in {
   xdg.portal.extraPortals = with pkgs; [xdg-desktop-portal-kde];
 
   services = {
+    tailscale = {
+      enable = true;
+      useRoutingFeatures="client";
+    };
+    resolved.enable = true;
     acpid.enable = true;
     # acpid.handlers = {
     #   ac-power = {
@@ -216,8 +228,36 @@ in {
     tlp.enable = true;
     tlp.settings = {
       RUNTIME_PM_BLACKLIST="06:00.3 06:00.4";
+      # CPU Settings
+      CPU_SCALING_GOVERNOR_ON_BAT="powersave";
+      CPU_ENERGY_PERF_POLICY_ON_BAT="power";
+  
+      # Radeon GPU Settings
+      RADEON_POWER_PROFILE_ON_BAT="low";
+      RADEON_DPM_PERF_LEVEL_ON_BAT="low";
+  
+      # Wi-Fi Power Saving
+      WIFI_PWR_ON_BAT="5";
+  
+      # PCIe ASPM
+      PCIE_ASPM_ON_BAT="performance";
+  
+      # USB Autosuspend
+      USB_AUTOSUSPEND="1";
+  
+      # SATA Link Power Management
+      SATA_LINKPWR_ON_BAT="min_power";
+  
+      # Runtime Power Management for PCI Devices
+      RUNTIME_PM_ON_BAT="auto";
+      RUNTIME_PM_DRIVER_BLACKLIST="amdgpu nouveau nvidia";
+  
+      # Audio Power Saving
+      SOUND_POWER_SAVE_ON_BAT="1";
+      # Set CPU frequency to 1.4 GHz (1400000 kHz) on battery
+      CPU_MIN_FREQ_ON_BAT="1400000";
+      CPU_MAX_FREQ_ON_BAT="1400000";
     };
-
     power-profiles-daemon.enable = false;
 
     davfs2.enable = true;
@@ -247,7 +287,7 @@ in {
 
 
 
-  powerManagement.enable = true;
+  # powerManagement.enable = true;
   # Enable sound.
   # sound.enable = true;
 
@@ -331,13 +371,11 @@ in {
   environment.systemPackages = with pkgs; [
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wget
+    git
     sshfs
     # gnomeExtensions.appindicator
     # gnomeExtensions.gsconnect
-    rclone
-    restic
     psmisc
-    sqlite
     networkmanager-openvpn
     my-nix-switch
     man-pages
@@ -345,7 +383,6 @@ in {
     nvidia-offload
     home-manager
     brun
-    xdg-desktop-portal-wlr
     xdg-desktop-portal-kde
     corefonts
     btrfs-progs
@@ -384,6 +421,10 @@ in {
     # pinentryFlavor = "qt";
     pinentryPackage = pkgs.pinentry-qt;
     #  enableSSHSupport = true;
+    settings={
+      default-cache-ttl = 6000;
+      max-cache-ttl = 6000;
+    };
   };
   programs.kdeconnect.enable = true;
   services.pcscd.enable = true;
@@ -408,12 +449,12 @@ in {
   users.users.sohamg.shell = pkgs.zsh;
   programs.zsh.autosuggestions.enable = true;
   programs.zsh.syntaxHighlighting.enable = true;
-  programs.zsh.ohMyZsh = {
-    enable = true;
-    plugins = [ "git" "man" "fzf" "vi-mode" ];
-    theme = "candy";
-    custom = "~/omz/";
-  };
+  # programs.zsh.ohMyZsh = {
+  #   enable = true;
+  #   plugins = [ "git" "man" "fzf" "vi-mode" ];
+  #   theme = "candy";
+  #   custom = "$HOME/omz/";
+  # };
   programs.zsh.shellAliases = { nixre = "sudo nixos-rebuild switch --flake .#thonker --impure"; };
 
   programs.virt-manager.enable = true;
@@ -451,7 +492,10 @@ in {
       #   type = "path";
       #   path = pkgs.path;
       # };
-      nixpkgs.flake = nixpkgs;
+      nixpkgs.to = {
+        type = "path";
+        path = "/etc/nix/path/nixpkgs";
+      };
     };
   };
 
@@ -515,6 +559,10 @@ in {
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   networking.firewall.enable = true;
+  networking.firewall = {
+trustedInterfaces = [ "tailscale0" ];
+  };
+  networking.interfaces.tailscale0.useDHCP = false;
   networking.nftables.enable = true;
 
 

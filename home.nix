@@ -1,4 +1,4 @@
-{config, pkgs, lib, ...}: 
+{config, pkgs, lib, ...}@inputs: 
 let
   emx = with pkgs;
       ((emacsPackagesFor pkgs.emacs-pgtk).emacsWithPackages
@@ -33,7 +33,8 @@ in
     inetutils pciutils dnsutils
     texliveFull mupdf imagemagick
     aspell aspellDicts.en aspellDicts.en-science aspellDicts.en-computers
-    git yadm
+    yadm konsave restic graphviz via poppler_utils
+    noto-fonts-color-emoji wezterm zsh-powerlevel10k powerlevel10k
   ];
   # bug
   manual.manpages.enable=false;
@@ -49,6 +50,10 @@ in
   programs.vscode.package = pkgs.vscode.fhs;
   programs.emacs.package = emx;
   programs.go.enable = true;
+  home.sessionVariables = {
+    RESTIC_REPOSITORY="sftp:rsync.net:restic";
+    RESTIC_PASSWORD_FILE="$HOME/restic.key";
+  };
   systemd.user.services.myemacs = {
     Unit = {
       After = [ "graphical-session-pre.target" ];
@@ -69,6 +74,24 @@ in
     };
   };
   
+
+  nix = {
+    package = pkgs.nixVersions.nix_2_23;
+    nixPath = [ "/etc/nix/path"];
+    registry = {
+      # nixpkgs.to = {
+      #   type = "path";
+      #   path = pkgs.path;
+      # };
+      # nixpkgs.to = {
+      #   type = "path";
+      #   path = "/etc/nix/path/nixpkgs";
+      # };
+      nixpkgs.flake=inputs.nixpkgs;
+    };
+  };
+
+}
   # Email
 
 #  programs.mbsync.enable = true;
@@ -112,4 +135,3 @@ in
 #    Service.ExecStartPre = "${pkgs.isync}/bin/mbsync -a";
 #    Service.ExecStart = "${pkgs.mu}/bin/mu index";
 #  };
-}
