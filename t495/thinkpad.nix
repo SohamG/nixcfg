@@ -59,8 +59,8 @@ in {
     # psmouse.proto=bare
     # kernel param to make trackpoint be a mouse.
     # kernelParams = ["psmouse.proto=bare"];
-    kernelPackages = pkgsU.linuxPackages;
-    extraModulePackages = with pkgsU.linuxPackages; [ v4l2loopback.out digimend.out ];
+    kernelPackages = pkgs.linuxPackages;
+    extraModulePackages = with pkgs.linuxPackages; [ v4l2loopback.out digimend.out ];
     kernelModules = [ "v4l2loopback" "snd-loop" "digimend" "kvm-intel" "snd_seq_midi"];
     plymouth.enable = true;
     plymouth.theme = "breeze";
@@ -96,11 +96,20 @@ in {
   xdg.portal.enable = true;
   xdg.portal.wlr.enable = true;
   xdg.portal.extraPortals = with pkgs; [xdg-desktop-portal-kde];
-
+  hardware.amdgpu.opencl.enable = true;
   services = {
+    gvfs.enable=true;
+    gvfs.package = pkgs.gvfs;
     tailscale = {
       enable = true;
       useRoutingFeatures="client";
+    };
+    ollama = {
+      enable = false;
+      acceleration = "rocm";
+      environmentVariables = {
+        HCC_AMDGPU_TARGET = "amdgcn-amd-amdhsa--gfx902:xnack+"; # used to be necessary, but doesn't seem to anymore
+      };
     };
     resolved.enable = true;
     acpid.enable = true;
@@ -131,7 +140,7 @@ in {
   # };
 
     keyd = {
-      enable = true;
+      enable = false;
       keyboards.default.settings = {
         main = {
           capslock = "overload(control, control)";
@@ -219,46 +228,26 @@ in {
     # emacs.package = emx;
 
     avahi = {
-      enable = true;
+      enable = false;
       nssmdns4 = true;
       publish = { workstation = true; };
     };
 
     # https://github.com/linrunner/TLP/issues/436
-    tlp.enable = true;
+    tlp.enable = false;
     tlp.settings = {
       RUNTIME_PM_BLACKLIST="06:00.3 06:00.4";
       # CPU Settings
       CPU_SCALING_GOVERNOR_ON_BAT="powersave";
       CPU_ENERGY_PERF_POLICY_ON_BAT="power";
   
-      # Radeon GPU Settings
-      RADEON_POWER_PROFILE_ON_BAT="low";
-      RADEON_DPM_PERF_LEVEL_ON_BAT="low";
   
-      # Wi-Fi Power Saving
-      WIFI_PWR_ON_BAT="5";
   
-      # PCIe ASPM
-      PCIE_ASPM_ON_BAT="performance";
-  
-      # USB Autosuspend
-      USB_AUTOSUSPEND="1";
-  
-      # SATA Link Power Management
-      SATA_LINKPWR_ON_BAT="min_power";
-  
-      # Runtime Power Management for PCI Devices
-      RUNTIME_PM_ON_BAT="auto";
-      RUNTIME_PM_DRIVER_BLACKLIST="amdgpu nouveau nvidia";
-  
-      # Audio Power Saving
-      SOUND_POWER_SAVE_ON_BAT="1";
       # Set CPU frequency to 1.4 GHz (1400000 kHz) on battery
       CPU_MIN_FREQ_ON_BAT="1400000";
       CPU_MAX_FREQ_ON_BAT="1400000";
     };
-    power-profiles-daemon.enable = false;
+    power-profiles-daemon.enable = true;
 
     davfs2.enable = true;
     davfs2.settings = {
@@ -280,7 +269,7 @@ in {
     # };
 
     guix = {
-        enable = true;
+        enable = false;
         extraArgs = ["--substitute-urls=https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://substitutes.nonguix.org"];
     };
   }; # services
@@ -349,11 +338,22 @@ in {
       "libvirtd"
       "gamemode"
       "tss"
+      "incus-admin"
     ]; # Enable ‘sudo’ for the user.
     # Good luck hackers ;)
     hashedPassword =
       "$6$dvC5IljJhXvXqZmW$Rgi..E83VMTLTUNp3CWlwoy1mdU7RdETUCeZOg7SvWdHSnxBnH3vPHenmyqr2wBl42dKFaAj74Hcz1LYvQl9z.";
     packages = with pkgs; [ firefox neovim ];
+    subUidRanges = [{
+    count = 65536;
+    startUid = 100000;
+    } {count=65536; startUid=200000;}];
+    subGidRanges = [{count = 65536; startGid=100000;} {count=65536; startGid=200000;}];
+  };
+
+  users.users.root = {
+    subUidRanges = [{count = 1; startUid=200000;}];
+    subGidRanges = [{count = 1; startGid=200000;}];
   };
 
   users.extraUsers.rclone = {
@@ -408,6 +408,11 @@ in {
   };
   programs.command-not-found.enable = true;
 
+  # programs.ryzen-ppd = {
+  #   package = inp.pkgs-fork.ryzen-ppd;
+  #   enable = true;
+  # };
+  hardware.cpu.amd.ryzen-smu.enable = true;
   programs.steam.enable = true;
   programs.gamemode.enable = true;
   # qt.enable = true;
@@ -436,6 +441,29 @@ in {
   EnableSSHKeysign yes
   '';
   virtualisation.docker.enable = false;
+  virtualisation.lxc = {
+    lxcfs.enable = true;
+    enable = true;
+    # systemConfig = ''
+    # lxc.id_map = u 0 100000 65536
+    # lxc.id_map = g 0 100000 65536
+    # lxc.network.type = veth
+    # lxc.network.link = lxcbr0
+    # lxc.network.flags = up
+    # lxc.network.hwaddr = 00:16:3e:xx:xx:xx
+    # '';
+
+    # lxc.net.0.veth.mode = bridge
+    # lxc.net.0.link = lxcbr0
+    # lxc.net.0.flags = up
+    defaultConfig = ''
+    lxc.include = ${pkgs.lxcfs}/share/lxc/config/common.conf.d/00-lxcfs.conf
+    lxc.net.0.type = none
+    '';
+    usernetConfig = ''
+    sohamg veth lxcbr0 1000
+    '';
+  };
   virtualisation.podman = {
     enable = true;
     dockerCompat = true;
@@ -549,21 +577,34 @@ in {
     };
   }];
 
+  systemd.oomd = {
+    enable = true;
+    enableUserSlices = true;
+  };
   systemd.automounts = [{
     description = "Nextcloud auto";
     where = "/mnt/nextcloud";
     wantedBy = ["multi-user.target"];
   }];
   # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
+  networking.firewall.allowedTCPPorts = [ 8080 ];
+  networking.firewall.allowedUDPPorts = [ 8080 ];
   # Or disable the firewall altogether.
   networking.firewall.enable = true;
   networking.firewall = {
-trustedInterfaces = [ "tailscale0" ];
+    trustedInterfaces = [ "tailscale0" ];
   };
   networking.interfaces.tailscale0.useDHCP = false;
   networking.nftables.enable = true;
+ # Configure networking for LXC
+   networking.bridges.lxcbr0 = {
+     interfaces = ["wlp1s0"];
+   };
+
+   # Enable NAT for the bridge if you want the containers to have internet access
+   networking.nat.enable = true;
+   networking.nat.internalInterfaces = [ "lxcbr0" ];
+   networking.nat.externalInterface = "wlp1s0";
 
 
   # Copy the NixOS configuration file and link it from the resulting system

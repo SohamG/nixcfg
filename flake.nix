@@ -27,6 +27,9 @@
       } // {
         outPath = inputs.nixpkgs.outPath;
       };
+      pkgs-fork = import inputs.fork-nixpkgs {
+        inherit system;
+      };
     in {
       defaultPackage.x86_64-linux = home-manager.defaultPackage.x86_64-linux;
 
@@ -49,6 +52,7 @@
           inputs.lanzaboote.nixosModules.lanzaboote
           ./t495/thinkpad.nix
           inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t495
+
         ];
         specialArgs = {
           inherit (inputs) nixpkgs-unstable;

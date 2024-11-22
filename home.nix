@@ -34,7 +34,7 @@ in
     texliveFull mupdf imagemagick
     aspell aspellDicts.en aspellDicts.en-science aspellDicts.en-computers
     yadm konsave restic graphviz via poppler_utils
-    noto-fonts-color-emoji wezterm zsh-powerlevel10k powerlevel10k
+    noto-fonts-color-emoji wezterm zsh-powerlevel10k 
   ];
   # bug
   manual.manpages.enable=false;
@@ -43,6 +43,7 @@ in
   programs.direnv.enable = true;
   programs.direnv.nix-direnv.enable = true;
   services.emacs.enable = false;
+  services.emacs.defaultEditor = true;
   services.flameshot.enable = true;
   programs.vscode.enable = true;
   programs.fzf.enable = true;
