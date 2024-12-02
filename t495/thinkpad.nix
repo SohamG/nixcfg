@@ -94,11 +94,11 @@ in {
   # };
 
   xdg.portal.enable = true;
-  xdg.portal.wlr.enable = true;
+  xdg.portal.wlr.enable = false;
   xdg.portal.extraPortals = with pkgs; [xdg-desktop-portal-kde];
   hardware.amdgpu.opencl.enable = true;
   services = {
-    gvfs.enable=true;
+    gvfs.enable=false;
     gvfs.package = pkgs.gvfs;
     tailscale = {
       enable = true;
@@ -112,7 +112,7 @@ in {
       };
     };
     resolved.enable = true;
-    acpid.enable = true;
+    acpid.enable = false;
     # acpid.handlers = {
     #   ac-power = {
     #     event = "ac_adapter/*";
@@ -234,7 +234,7 @@ in {
     };
 
     # https://github.com/linrunner/TLP/issues/436
-    tlp.enable = false;
+    tlp.enable = true;
     tlp.settings = {
       RUNTIME_PM_BLACKLIST="06:00.3 06:00.4";
       # CPU Settings
@@ -247,7 +247,7 @@ in {
       CPU_MIN_FREQ_ON_BAT="1400000";
       CPU_MAX_FREQ_ON_BAT="1400000";
     };
-    power-profiles-daemon.enable = true;
+    power-profiles-daemon.enable = false;
 
     davfs2.enable = true;
     davfs2.settings = {
@@ -442,7 +442,7 @@ in {
   '';
   virtualisation.docker.enable = false;
   virtualisation.lxc = {
-    lxcfs.enable = true;
+    lxcfs.enable = false;
     enable = true;
     # systemConfig = ''
     # lxc.id_map = u 0 100000 65536

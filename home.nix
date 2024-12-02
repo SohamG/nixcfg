@@ -54,6 +54,7 @@ in
   home.sessionVariables = {
     RESTIC_REPOSITORY="sftp:rsync.net:restic";
     RESTIC_PASSWORD_FILE="$HOME/restic.key";
+    EDITOR="emacsclient -r";
   };
   systemd.user.services.myemacs = {
     Unit = {
