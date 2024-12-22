@@ -1,7 +1,15 @@
 {config, pkgs, lib, ...}@inputs: 
 let
+  optimizeWithFlag = pkg: flag:
+  pkg.overrideAttrs (attrs: {
+    NIX_CFLAGS_COMPILE = (attrs.NIX_CFLAGS_COMPILE or "") + " ${flag}";
+  });
+  
+  optimizeWithFlags = pkg: flags: pkgs.lib.foldl' (pkg: flag: optimizeWithFlag pkg flag) pkg flags;
+
+  emx-opt = optimizeWithFlags pkgs.emacs-pgtk [ "-O3" "-march=native" "-mtune=native" "-fPIC" ];
   emx = with pkgs;
-      ((emacsPackagesFor pkgs.emacs-pgtk).emacsWithPackages
+      ((emacsPackagesFor emx-opt).emacsWithPackages
         (epkgs: [ epkgs.vterm ]));
   # emx = with pkgs;emacs29-pgtk;
 in
@@ -26,7 +34,7 @@ in
     openssl
     kubectl kubernetes-helm
      screen
-    pandoc file vagrant
+    pandoc file # vagrant
     pass-wayland
     roswell
     zerotierone
