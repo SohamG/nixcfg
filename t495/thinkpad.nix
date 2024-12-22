@@ -53,7 +53,9 @@ in {
     initrd = {
       systemd={
         enable = true;
-        enableTpm2 = true;
+	tpm2 = {
+          enable = true;
+	};
       };
     };
     # psmouse.proto=bare
@@ -98,8 +100,7 @@ in {
   xdg.portal.extraPortals = with pkgs; [xdg-desktop-portal-kde];
   hardware.amdgpu.opencl.enable = true;
   services = {
-    gvfs.enable=false;
-    gvfs.package = pkgs.gvfs;
+    gvfs.enable=true;
     tailscale = {
       enable = true;
       useRoutingFeatures="client";
@@ -269,7 +270,7 @@ in {
     # };
 
     guix = {
-        enable = false;
+        enable = true;
         extraArgs = ["--substitute-urls=https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://substitutes.nonguix.org"];
     };
   }; # services
@@ -296,8 +297,10 @@ in {
   };
 
   # hardware.pulseaudio.enable = true;
-  hardware.opengl.enable = true;
-  hardware.opengl.driSupport32Bit = true;
+  # hardware.opengl.enable = true;
+  # hardware.opengl.driSupport32Bit = true;
+  hardware.graphics.enable = true;
+  hardware.graphics.enable32Bit = true;
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;
@@ -503,6 +506,18 @@ in {
   #     Environment = [ "PATH=/run/wrappers/bin/:$PATH" ];
   #   };
   # };
+  systemd.user.services.gvfsd = {
+    description = "Gvfs";
+    partOf = [ "graphical-session.target" ];    # Ensure the service starts after graphical target is active.
+    serviceConfig = {
+      ExecStart = "${pkgs.gvfs}/libexec/gvfsd";  # Replace with the command to start your service.
+      Restart = "always";                  # Restart policy (optional).
+      Type="dbus";
+      BusName="org.gtk.vfs.Daemon";
+      Slice="session.slice";
+
+    };
+  };
   nixpkgs.config.allowUnfree = true;
   nix = {
     extraOptions = ''
@@ -551,7 +566,7 @@ in {
  };
 
  security.pam.u2f = {
-   cue = true;
+   settings.cue = true;
    enable = true;
    control = "sufficient";
  };
