@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ pkgs, nixpkgs, modulesPath, ... }@inp:
+{ pkgs, nixpkgs, modulesPath, config, ... }@inp:
 
 let
   my-nix-switch = pkgs.writeShellScriptBin "my-nix-switch" ''
@@ -35,7 +35,47 @@ in {
     ./hardware-configuration.nix
   ];
 
-  # Use the systemd-boot EFI boot loader.
+    specialisation."realtime" = {
+      inheritParentConfig = true;
+      configuration = {
+	system.nixos.tags = [ "realtime" ];
+
+	imports = [ # Include the results of the hardware scan.
+	  ./hardware-configuration.nix
+	];
+	boot = {
+	  kernelPatches = [
+	    {
+	      name="realtime switch";
+	      patch=null;
+	      extraStructuredConfig = with pkgs.lib.kernel; {
+		EXPERT = yes;
+		PREEMPT = pkgs.lib.mkForce yes;
+		PREEMPT_VOLUNTARY = pkgs.lib.mkForce no;
+	      };
+	    }
+
+	  ];
+
+
+	  lanzaboote = {
+            enable = true;
+            pkiBundle = "/etc/secureboot";
+	  };
+
+	  initrd = {
+	    systemd={
+              enable = true;
+	      tpm2 = {
+		enable = true;
+	      };
+	    };
+	  };
+	};
+      };
+    };
+
+# Use the systemd-boot EFI boot loader.
   boot = {
     loader = {
         # systemd-boot.enable = pkgs.lib.mkForce false;
@@ -58,12 +98,16 @@ in {
 	};
       };
     };
+
     # psmouse.proto=bare
     # kernel param to make trackpoint be a mouse.
     # kernelParams = ["psmouse.proto=bare"];
-    kernelPackages = pkgs.linuxPackages;
-    extraModulePackages = with pkgs.linuxPackages; [ v4l2loopback.out digimend.out ];
-    kernelModules = [ "v4l2loopback" "snd-loop" "digimend" "kvm-intel" "snd_seq_midi"];
+    kernelPackages = pkgs.linuxKernel.packages.linux_6_12;
+    extraModulePackages = with config.boot.kernelPackages; [
+      v4l2loopback.out
+      # digimend.out # Digimend is unmaintained.
+    ];
+    kernelModules = [ "v4l2loopback" "snd-loop" /* "digimend" */ "kvm-intel" "snd_seq_midi"];
     plymouth.enable = true;
     plymouth.theme = "breeze";
   };
@@ -154,7 +198,7 @@ in {
     # Enable the X11 windowing system.
     xserver.enable = true;
     # xserver.videoDrivers = [ "nvidia" ];
-    xserver.digimend.enable = true;
+    # xserver.digimend.enable = true; # unmaintained
     # greetd.enable = true;
     # greetd.settings = {
     #   default_session = {

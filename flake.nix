@@ -33,18 +33,18 @@
     in {
       defaultPackage.x86_64-linux = home-manager.defaultPackage.x86_64-linux;
 
-      nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
-        inherit system;
-        modules = [
+      # nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+      #   inherit system;
+      #   modules = [
 
-          (import ./dell/configuration.nix {
-            inherit pkgs;
-            inherit system;
-            inherit (inputs) nixpkgs;
-            inherit (inputs) nixpkgs-unstable;
-          })
-        ];
-      };
+      #     (import ./dell/configuration.nix {
+      #       inherit pkgs;
+      #       inherit system;
+      #       inherit (inputs) nixpkgs;
+      #       inherit (inputs) nixpkgs-unstable;
+      #     })
+      #   ];
+      # };
 
       nixosConfigurations.thonker = nixpkgs.lib.nixosSystem {
         inherit system;
