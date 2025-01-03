@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ pkgs, nixpkgs, ... }@inp:
+{ pkgs, nixpkgs, config, ... }@inp:
 
 let
   my-nix-switch = pkgs.writeShellScriptBin "my-nix-switch" ''
@@ -29,6 +29,14 @@ in {
   imports = [ # Include the results of the hardware scan.
     ./hardware-configuration.nix
   ];
+
+  specialisation."612" = {
+    inheritParentConfig = true;
+    configuration = {
+      boot.kernelPackages = pkgs.lib.mkForce pkgs.linuxPackages_6_12;
+
+    };
+  };
   
   # Use the systemd-boot EFI boot loader.
   boot = {
@@ -39,8 +47,8 @@ in {
         systemd-boot.consoleMode = "auto";
     };
     kernelPackages = pkgs.linuxPackages;
-    extraModulePackages = with pkgs.linuxPackages; [ v4l2loopback.out digimend.out];
-    kernelModules = [ "v4l2loopback" "snd-loop" "digimend" "kvm-intel"];
+    extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback.out ];
+    kernelModules = [ "v4l2loopback" "snd-loop" "kvm-intel"];
     plymouth.enable = true;
     plymouth.theme = "breeze";
   };
@@ -118,14 +126,14 @@ in {
     fstrim.enable = true;
     # Enable the X11 windowing system.
     xserver.enable = true;
-    # xserver.videoDrivers = [ "nvidia" ];
-    xserver.digimend.enable = true;
-    greetd.enable = true;
-    greetd.settings = {
-      default_session = {
-        command = "${pkgs.greetd.greetd}/bin/agreety --cmd runriver";
-      };
-    };
+    xserver.videoDrivers = [ "nvidia" ];
+    # xserver.digimend.enable = true;
+    # greetd.enable = true;
+    # greetd.settings = {
+    #   default_session = {
+    #     command = "${pkgs.greetd.greetd}/bin/agreety --cmd runriver";
+    #   };
+    # };
     # Enable the GNOME Desktop Environment.
     # xserver.displayManager.gdm.enable = true;
     # xserver.desktopManager.gnome.enable = true;
@@ -161,32 +169,52 @@ in {
     power-profiles-daemon.enable = true;
 
     davfs2.enable = true;
-    davfs2.extraConfig =
-      ''cache_size 500
-        gui_optimize 1
-        ignore_dav_header 1
-        use_locks 0
-        file_refresh 60
-        dir_refresh 60
-        buf_size 256'';
+    # davfs2.extraConfig =
+      # ''cache_size 500
+        # gui_optimize 1
+        # ignore_dav_header 1
+        # use_locks 0
+        # file_refresh 60
+        # dir_refresh 60
+        # buf_size 256'';
     zerotierone = {
       enable = true;
     };
   };
 
   # Enable sound.
-  sound.enable = true;
-  hardware.pulseaudio.enable = true;
-  hardware.opengl.enable = true;
-  hardware.opengl.driSupport32Bit = true;
+  # sound.enable = true;
+  hardware.pulseaudio.enable = false;
+  # hardware.opengl.enable = true;
+  # hardware.opengl.driSupport32Bit = true;
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+  };
 
-  # hardware.nvidia.prime = {
-  #   offload.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    # If you want to use JACK applications, uncomment this
+    jack.enable = true;
+  };
 
-  #   intelBusId = "PCI:00:02:0";
+  hardware.nvidia = {
+    modesetting.enable = true;
+    open = false;
+    package = config.boot.kernelPackages.nvidiaPackages.legacy_535;
+    nvidiaSettings = true;
+    prime = {
+     offload.enable = true;
+     offload.enableOffloadCmd = true;
+    #  sync.enable = true;
+     intelBusId = "PCI:00:02:0";
 
-  #   nvidiaBusId = "PCI:01:00:0";
-  # };
+     nvidiaBusId = "PCI:01:00:0";
+    };
+  };
 
   # Enable touchpad support (enabled default in most desktopManager).
 
@@ -211,6 +239,7 @@ in {
       "dialout"
       "qemu-libvirtd "
       "libvirtd"
+      "gamemode"
     ]; # Enable ‘sudo’ for the user.
     # Good luck hackers ;)
     hashedPassword =
@@ -243,7 +272,8 @@ in {
     my-nix-switch
     man-pages
     man-pages-posix
-    nvidia-offload
+    # nvidia-offload
+    # nvidia-settings
     river
     runriver
     home-manager
@@ -269,6 +299,20 @@ in {
     XDG_DATA_DIRS = [ "/var/lib/flatpak/exports/share" "/home/sohamg/.local/share/flatpak/exports/share"];
   };
   programs.command-not-found.enable = true;
+  programs.gamemode.enable = true;
+  programs.steam = {
+    enable = true;
+    extraCompatPackages = with pkgs; [ proton-ge-bin ];
+    package = pkgs.steam.override {
+      extraPkgs = pkgs: [ pkgs.gamemode ];
+      extraEnv = {
+        __NV_PRIME_RENDER_OFFLOAD=1;
+        __NV_PRIME_RENDER_OFFLOAD_PROVIDER="NVIDIA-G0";
+        __GLX_VENDOR_LIBRARY_NAME="nvidia";
+        __VK_LAYER_NV_optimus="NVIDIA_only";
+      };
+    };
+  };
   # qt.enable = true;
   # qt.style = "adwaita-dark";
   # qt.platformTheme = "kde";
@@ -277,7 +321,7 @@ in {
   # programs.mtr.enable = true;
   programs.gnupg.agent = {
     enable = true;
-    pinentryFlavor = "qt";
+    # pinentryFlavor = "qt";
     #  enableSSHSupport = true;
   };
   programs.kdeconnect.enable = true;
@@ -324,7 +368,7 @@ in {
   # };
   nixpkgs.config.allowUnfree = true;
   nix = {
-    package = pkgs.nixVersions.stable;
+    package = pkgs.nixVersions.latest;
     extraOptions = ''
       experimental-features = nix-command flakes
       keep-outputs = true
@@ -346,15 +390,26 @@ in {
 
   fonts.packages = with pkgs; [ corefonts ];
 
- environment.etc."davfs2/secrets" = {
-  text = "${builtins.readFile "/home/sohamg/nixcfg/system/davsecret"}";
-  mode = "0600";
- };
+ # environment.etc."davfs2/secrets" = {
+  # text = "${builtins.readFile "/home/sohamg/nixcfg/system/davsecret"}";
+  # mode = "0600";
+ # };
 
  security.pam.services = {
    login.u2fAuth = true;
    sudo.u2fAuth = true;
  };
+
+ # Proton audio crackling
+ security.pam.loginLimits = [
+   {
+     domain = "sohamg";
+     type = "-";
+     item = "nice";
+     value = "-20";
+   }
+   
+ ];
 
  security.pam.u2f = {
    cue = true;
