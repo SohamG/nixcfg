@@ -35,45 +35,15 @@ in {
     ./hardware-configuration.nix
   ];
 
-    specialisation."realtime" = {
-      inheritParentConfig = true;
-      configuration = {
-	system.nixos.tags = [ "realtime" ];
-
-	imports = [ # Include the results of the hardware scan.
-	  ./hardware-configuration.nix
-	];
-	boot = {
-	  kernelPatches = [
-	    {
-	      name="realtime switch";
-	      patch=null;
-	      extraStructuredConfig = with pkgs.lib.kernel; {
-		EXPERT = yes;
-		PREEMPT = pkgs.lib.mkForce yes;
-		PREEMPT_VOLUNTARY = pkgs.lib.mkForce no;
-	      };
-	    }
-
-	  ];
-
-
-	  lanzaboote = {
-            enable = true;
-            pkiBundle = "/etc/secureboot";
-	  };
-
-	  initrd = {
-	    systemd={
-              enable = true;
-	      tpm2 = {
-		enable = true;
-	      };
-	    };
-	  };
-	};
+  specialisation."default-kernel" = {
+    inheritParentConfig = true;
+    configuration = {
+      system.nixos.tags = [ "default-kernel" ];
+      boot = {
+	kernelPackages = pkgs.lib.mkForce pkgs.linuxKernel.packages.linux_6_12;
       };
     };
+  };
 
 # Use the systemd-boot EFI boot loader.
   boot = {
@@ -90,6 +60,7 @@ in {
         pkiBundle = "/etc/secureboot";
     };
 
+
     initrd = {
       systemd={
         enable = true;
@@ -102,7 +73,7 @@ in {
     # psmouse.proto=bare
     # kernel param to make trackpoint be a mouse.
     # kernelParams = ["psmouse.proto=bare"];
-    kernelPackages = pkgs.linuxKernel.packages.linux_6_12;
+    kernelPackages = pkgs.lib.mkDefault pkgs.linuxKernel.packages.linux_xanmod_latest;
     extraModulePackages = with config.boot.kernelPackages; [
       v4l2loopback.out
       # digimend.out # Digimend is unmaintained.
@@ -110,18 +81,15 @@ in {
     kernelModules = [ "v4l2loopback" "snd-loop" /* "digimend" */ "kvm-intel" "snd_seq_midi"];
     plymouth.enable = true;
     plymouth.theme = "breeze";
-  };
+  }; # boot
 
   # Make imperative nixpkgs be same as the flake.
 
   environment.etc."nix/path/nixpkgs".source = nixpkgs;
   environment.etc."nix/path/nixpkgs-unstable".source = inp.nixpkgs-unstable;
 
-  networking.hostName = "thonker"; # Define your hostname.
-  # Pick only one of the below networking options.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-  networking.networkmanager.enable =
-    true; # Easiest to use and most distros use this by default.
+  networking.hostName = "thonker"; 
+  networking.networkmanager.enable = true;
 
   # Set your time zone.
  time.timeZone = "America/Chicago";
@@ -144,6 +112,7 @@ in {
   xdg.portal.extraPortals = with pkgs; [xdg-desktop-portal-kde];
   hardware.amdgpu.opencl.enable = true;
   services = {
+    fwupd.enable = true;
     gvfs.enable=true;
     tailscale = {
       enable = true;
@@ -156,7 +125,8 @@ in {
         HCC_AMDGPU_TARGET = "amdgcn-amd-amdhsa--gfx902:xnack+"; # used to be necessary, but doesn't seem to anymore
       };
     };
-    resolved.enable = true;
+    resolved.enable = false;
+    resolved.dnssec = "allow-downgrade";
     acpid.enable = false;
     # acpid.handlers = {
     #   ac-power = {
@@ -197,58 +167,14 @@ in {
     fstrim.enable = true;
     # Enable the X11 windowing system.
     xserver.enable = true;
-    # xserver.videoDrivers = [ "nvidia" ];
-    # xserver.digimend.enable = true; # unmaintained
-    # greetd.enable = true;
-    # greetd.settings = {
-    #   default_session = {
-    #     command = "${pkgs.greetd.greetd}/bin/agreety --cmd runriver";
-    #   };
-    # };
-    # Enable the GNOME Desktop Environment.
-    # xserver.displayManager.gdm.enable = true;
-    # xserver.desktopManager.gnome.enable = true;
-    # Try KDE LOL
+
     displayManager.sddm.enable = true;
     desktopManager.plasma6.enable = true;
 
     # Configure keymap in X11
     xserver.xkb.layout = "us";
 
-    # xkb_keymap {
-    #     xkb_keycodes { include "evdev+aliases(qwerty)" };
-    #     xkb_types { include "complete" };
-    #     xkb_compat { include "complete" };
-    #     xkb_symbols {
-    #         include "pc+us"
-    #         key <LFSH> { [ NoSymbol ] };
-    #     };
-    #     xkb_geometry { include "pc(pc105)" };
-    # };
 
-    xserver.xkb.extraLayouts."noShift" = {
-      compatFile = pkgs.writeText "noshift_compat" ''
-                 xkb_compat "noShift" { include "complete" };
-      '';
-      keycodesFile = pkgs.writeText "noshift_keycodes" ''
-                 xkb_keycodes "noShift" { include "evdev+aliases(qwerty)" };
-      '';
-      typesFile = pkgs.writeText "noshift_types" ''
-                 xkb_types "noShift" { include "complete" };
-      '';
-      symbolsFile = pkgs.writeText "noshift_symbols" ''
-                 xkb_symbols "noShift" {
-                            include "pc+us"
-                            key <LFSH> { [ NoSymbol ]};
-                 };
-      '';
-      geometryFile = pkgs.writeText "noshift_compat" ''
-                 xkb_geometry "noShift" { include "pc(pc105)" };
-      '';
-      description = "Disable left shift";
-      languages = ["eng"];
-
-    };
 
     # Enable CUPS to print documents.
     printing.enable = true;
@@ -294,7 +220,7 @@ in {
     };
     power-profiles-daemon.enable = false;
 
-    davfs2.enable = true;
+    davfs2.enable = false;
     davfs2.settings = {
       globalSection = {
         cache_size = 500;
@@ -307,7 +233,7 @@ in {
       };
     };
     zerotierone = {
-      enable = true;
+      enable = false;
     };
     # fprintd = {
     #   enable = true;
@@ -321,10 +247,6 @@ in {
 
 
 
-  # powerManagement.enable = true;
-  # Enable sound.
-  # sound.enable = true;
-
   security.rtkit.enable = true;
   security.tpm2 = {
     enable = true;
@@ -336,13 +258,9 @@ in {
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    # If you want to use JACK applications, uncomment this
     jack.enable = true;
   };
 
-  # hardware.pulseaudio.enable = true;
-  # hardware.opengl.enable = true;
-  # hardware.opengl.driSupport32Bit = true;
   hardware.graphics.enable = true;
   hardware.graphics.enable32Bit = true;
   hardware.bluetooth = {
@@ -352,15 +270,7 @@ in {
       General.Experimental = true;
     };
   };
-  # hardware.nvidia.prime = {
-  #   offload.enable = true;
 
-  #   intelBusId = "PCI:00:02:0";
-
-  #   nvidiaBusId = "PCI:01:00:0";
-  # };
-
-  # Enable touchpad support (enabled default in most desktopManager).
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
 
@@ -386,7 +296,7 @@ in {
       "gamemode"
       "tss"
       "incus-admin"
-    ]; # Enable ‘sudo’ for the user.
+    ]; 
     # Good luck hackers ;)
     hashedPassword =
       "$6$dvC5IljJhXvXqZmW$Rgi..E83VMTLTUNp3CWlwoy1mdU7RdETUCeZOg7SvWdHSnxBnH3vPHenmyqr2wBl42dKFaAj74Hcz1LYvQl9z.";
@@ -415,6 +325,10 @@ in {
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
+  documentation.doc.enable = true;
+  documentation.info.enable = true;
+  documentation.nixos.enable = true;
+  environment.extraOutputsToInstall = [ "doc" "info" ];
   environment.systemPackages = with pkgs; [
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wget
@@ -435,7 +349,7 @@ in {
     btrfs-progs
     pinentry-qt
     kwalletcli
-    zerotierone
+    #zerotierone
     xwaylandvideobridge
     xorg.xkbcomp
     keyd
@@ -454,7 +368,7 @@ in {
     XDG_DATA_DIRS = [ "/var/lib/flatpak/exports/share" "/home/sohamg/.local/share/flatpak/exports/share"];
   };
   programs.command-not-found.enable = true;
-
+  programs.ccache.enable = true;
   # programs.ryzen-ppd = {
   #   package = inp.pkgs-fork.ryzen-ppd;
   #   enable = true;
@@ -515,7 +429,9 @@ in {
     enable = true;
     dockerCompat = true;
   };
+  # virtualisation.tpm.enable = true;
   virtualisation.libvirtd.enable = true;
+  virtualisation.libvirtd.qemu.swtpm.enable = true;
   virtualisation.virtualbox.host.enable = true;
   users.extraGroups.vboxusers.members = [ "sohamg" ];
 
@@ -524,32 +440,10 @@ in {
   users.users.sohamg.shell = pkgs.zsh;
   programs.zsh.autosuggestions.enable = true;
   programs.zsh.syntaxHighlighting.enable = true;
-  # programs.zsh.ohMyZsh = {
-  #   enable = true;
-  #   plugins = [ "git" "man" "fzf" "vi-mode" ];
-  #   theme = "candy";
-  #   custom = "$HOME/omz/";
-  # };
   programs.zsh.shellAliases = { nixre = "sudo nixos-rebuild switch --flake .#thonker --impure"; };
 
   programs.virt-manager.enable = true;
 
-  # systemd.services.rcloneNextCloud = {
-  #   wantedBy = [ "multi-user.target" ];
-  #   after = [ "network.target" ];
-  #   description = "Auto Mount cloud.sohamg.xyz";
-  #   enable = true;
-  #   serviceConfig = {
-  #     User = "rclone";
-  #     ExecStartPre = "/run/current-system/sw/bin/mkdir -p /home/rclone/data";
-  #     ExecStart = ''${pkgs.rclone}/bin/rclone \
-  #     --config="/home/sohamg/.config/rclone/rclone.conf" \
-  #     mount vpsnc: /home/rclone/data \
-  #     '';
-  #     ExecStop = "${pkgs.psmisc}/bin/killall rclone";
-  #     Environment = [ "PATH=/run/wrappers/bin/:$PATH" ];
-  #   };
-  # };
   systemd.user.services.gvfsd = {
     description = "Gvfs";
     partOf = [ "graphical-session.target" ];    # Ensure the service starts after graphical target is active.
@@ -559,18 +453,25 @@ in {
       Type="dbus";
       BusName="org.gtk.vfs.Daemon";
       Slice="session.slice";
-
     };
   };
+
   nixpkgs.config.allowUnfree = true;
   nix = {
     extraOptions = ''
       experimental-features = nix-command flakes
       keep-outputs = true
       keep-derivations = true
+      builders-use-substitutes = true
     '';
     settings.trusted-users = ["root" "sohamg"];
     settings.sandbox = true;
+
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      persistent = true;
+    };
 
     package = pkgs.nixVersions.nix_2_23;
     nixPath = [ "/etc/nix/path"];
@@ -639,12 +540,13 @@ in {
   systemd.oomd = {
     enable = true;
     enableUserSlices = true;
+    enableRootSlice = true;
   };
-  systemd.automounts = [{
-    description = "Nextcloud auto";
-    where = "/mnt/nextcloud";
-    wantedBy = ["multi-user.target"];
-  }];
+  # systemd.automounts = [{
+  #   description = "Nextcloud auto";
+  #   where = "/mnt/nextcloud";
+  #   wantedBy = ["multi-user.target"];
+  # }];
   # Open ports in the firewall.
   networking.firewall.allowedTCPPorts = [ 8080 ];
   networking.firewall.allowedUDPPorts = [ 8080 ];
@@ -655,16 +557,6 @@ in {
   };
   networking.interfaces.tailscale0.useDHCP = false;
   networking.nftables.enable = true;
- # Configure networking for LXC
-   networking.bridges.lxcbr0 = {
-     interfaces = ["wlp1s0"];
-   };
-
-   # Enable NAT for the bridge if you want the containers to have internet access
-   networking.nat.enable = true;
-   networking.nat.internalInterfaces = [ "lxcbr0" ];
-   networking.nat.externalInterface = "wlp1s0";
-
 
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
