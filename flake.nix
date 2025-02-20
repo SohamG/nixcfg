@@ -31,7 +31,7 @@
         inherit system;
       };
     in {
-      defaultPackage.x86_64-linux = home-manager.defaultPackage.x86_64-linux;
+      defaultPackage.x86_64-linux = home-manager.packages.x86_64-linux.default;
 
       packages.x86_64-linux.custom-emacs = pkgs.callPackage ./custom-emacs.nix {};
 
