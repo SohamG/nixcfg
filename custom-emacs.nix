@@ -12,7 +12,7 @@ emacs-pgtk.overrideAttrs (old: {
 
   withXwidgets = true;
 
-  buildInputs = old.buildInputs ++ [ webkitgtk_4_0 ];
-  nativeBuildInputs = old.nativeBuildInputs ++ [ wrapGAppsHook3 webkitgtk_4_0 ];
+  buildInputs = old.buildInputs ++ [ webkitgtk_4_0.dev ];
+  nativeBuildInputs = old.nativeBuildInputs ++ [ wrapGAppsHook3 webkitgtk_4_0.dev ];
   configureFlags = (lib.lists.remove "--without-xwidgets" old.configureFlags) ++ ["--with-xwidgets"];
 })
