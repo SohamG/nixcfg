@@ -64,6 +64,7 @@ in {
     initrd = {
       systemd={
         enable = true;
+	package = pkgs.systemd.override { withTpm2Tss = true; };
 	tpm2 = {
           enable = true;
 	};
