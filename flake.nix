@@ -11,7 +11,7 @@
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     lanzaboote = {
-      url = "github:nix-community/lanzaboote/v0.4.1";
+      url = "github:nix-community/lanzaboote/v0.4.2";
 
       # Optional but recommended to limit the size of your system closure.
       inputs.nixpkgs.follows = "nixpkgs-unstable";
@@ -32,6 +32,8 @@
       };
     in {
       defaultPackage.x86_64-linux = home-manager.defaultPackage.x86_64-linux;
+
+      packages.x86_64-linux.custom-emacs = pkgs.callPackage ./custom-emacs.nix {};
 
       # nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
       #   inherit system;

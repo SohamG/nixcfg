@@ -8,18 +8,21 @@ let
   optimizeWithFlags = pkg: flags: pkgs.lib.foldl' (pkg: flag: optimizeWithFlag pkg flag) pkg flags;
 
   emx-opt = optimizeWithFlags pkgs.emacs-pgtk [ "-O3" "-march=native" "-mtune=native" "-fPIC" ];
+  emx-opt-xwidgets = (emx-opt.override { withXwidgets = true; }).overrideAttrs (old: { buildInputs = old.buildInputs ++ [ pkgs.webkitgtk_4_0 ];});
+  custom-emx = pkgs.callPackage ./custom-emacs.nix {};
   emx = with pkgs;
-      ((emacsPackagesFor emx-opt).emacsWithPackages
-        (epkgs: [ epkgs.vterm ]));
+      ((emacsPackagesFor custom-emx).emacsWithPackages
+        (epkgs: [ epkgs.vterm epkgs.treesit-grammars.with-all-grammars]));
   # emx = with pkgs;emacs29-pgtk;
 in
 {
   home.enableNixpkgsReleaseCheck = false;
   home.username = "sohamg";
   home.homeDirectory = "/home/sohamg";
+  home.extraOutputsToInstall = [ "doc" "info" "man" ];
   home.packages = with pkgs; [
     zsh emx neovim
-    flameshot
+    
     gnumake coreutils
     iputils bind ripgrep
     chromium
@@ -28,7 +31,7 @@ in
     squashfsTools
     qdirstat keepassxc
     unzip intel-gpu-tools
-    zotero thunderbird-bin
+    zotero 
     partition-manager
     python310
     openssl
@@ -52,18 +55,27 @@ in
   programs.direnv.nix-direnv.enable = true;
   services.emacs.enable = false;
   services.emacs.defaultEditor = true;
-  services.flameshot.enable = true;
   programs.vscode.enable = true;
   programs.fzf.enable = true;
   programs.fzf.enableZshIntegration = true;
   programs.vscode.package = pkgs.vscode.fhs;
   programs.emacs.package = emx;
   programs.go.enable = true;
-  home.sessionVariables = {
-    RESTIC_REPOSITORY="sftp:rsync.net:restic";
-    RESTIC_PASSWORD_FILE="$HOME/restic.key";
-    EDITOR="emacsclient -r";
+  home = {
+    sessionVariables = {
+      RESTIC_REPOSITORY="sftp:rsync.net:restic";
+      RESTIC_PASSWORD_FILE="$HOME/restic.key";
+      EDITOR="emacsclient -r";
+    };
+    # file.".zshenv" = {
+    #   enable = true;
+    #   source = config.lib.file.mkOutOfStoreSymlink "/home/sohamg/nix-profile/etc/profile/hm-session-vars.sh";
+    #   target = ".zshenv";
+    # };
   };
+  systemd.user.tmpfiles.rules = [
+    "L+ /home/sohamg/.zshenv - - - - /home/sohamg/.nix-profile/etc/profile.d/hm-session-vars.sh"
+  ];
   systemd.user.services.myemacs = {
     Unit = {
       After = [ "graphical-session-pre.target" ];
