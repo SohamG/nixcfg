@@ -16,6 +16,10 @@
       # Optional but recommended to limit the size of your system closure.
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
+    lix-module = {
+      url = "https://git.lix.systems/lix-project/nixos-module/archive/2.92.0-1.tar.gz";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
   outputs = inputs@{ nixpkgs, home-manager, self, ... }:
     let
@@ -51,6 +55,7 @@
       nixosConfigurations.thonker = nixpkgs.lib.nixosSystem {
         inherit system;
         modules = [
+          inputs.lix-module.nixosModules.default
           inputs.lanzaboote.nixosModules.lanzaboote
           ./t495/thinkpad.nix
           inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t495

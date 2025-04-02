@@ -7,7 +7,7 @@ let
   
   optimizeWithFlags = pkg: flags: pkgs.lib.foldl' (pkg: flag: optimizeWithFlag pkg flag) pkg flags;
 
-  emx-opt = optimizeWithFlags pkgs.emacs-pgtk [ "-O3" "-march=native" "-mtune=native" "-fPIC" ];
+  emx-opt = optimizeWithFlags pkgs.emacs-pgtk [ "-O3" "-march=znver1" "-mtune=znver1" "-fPIC" ];
   emx-opt-xwidgets = (emx-opt.override { withXwidgets = true; }).overrideAttrs (old: { buildInputs = old.buildInputs ++ [ pkgs.webkitgtk_4_0 ];});
   custom-emx = pkgs.callPackage ./custom-emacs.nix {};
   emx = with pkgs;

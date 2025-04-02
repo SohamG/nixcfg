@@ -1,7 +1,3 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
-
 { pkgs, nixpkgs, modulesPath, config, ... }@inp:
 
 let
@@ -113,6 +109,13 @@ in {
   xdg.portal.extraPortals = with pkgs; [xdg-desktop-portal-kde];
   hardware.amdgpu.opencl.enable = true;
   services = {
+    openvpn.servers."ACM" = {
+      config = "config /home/sohamg/ackem-baked.ovpn";
+      autoStart = true;
+      updateResolvConf = false;
+    };
+
+    openvpn.restartAfterSleep = true;
     fwupd.enable = true;
     gvfs.enable=true;
     tailscale = {
@@ -402,7 +405,9 @@ in {
   AddKeysToAgent yes
   EnableSSHKeysign yes
   '';
-  virtualisation.docker.enable = false;
+  virtualisation.docker.enable = true;
+  users.extraGroups.docker.members = [ "username-with-access-to-socket" ];
+
   virtualisation.lxc = {
     lxcfs.enable = false;
     enable = true;
@@ -428,7 +433,8 @@ in {
   };
   virtualisation.podman = {
     enable = true;
-    dockerCompat = true;
+    dockerCompat = false;
+    extraPackages = with pkgs; [ netavark aardvark-dns ];
   };
   # virtualisation.tpm.enable = true;
   virtualisation.libvirtd.enable = true;
@@ -474,7 +480,7 @@ in {
       persistent = true;
     };
 
-    package = pkgs.nixVersions.nix_2_23;
+  #  package = pkgs.nixVersions.nix_2_23;
     nixPath = [ "/etc/nix/path"];
     registry = {
       # nixpkgs.to = {
@@ -552,7 +558,7 @@ in {
   networking.firewall.allowedTCPPorts = [ 8080 ];
   networking.firewall.allowedUDPPorts = [ 8080 ];
   # Or disable the firewall altogether.
-  networking.firewall.enable = true;
+  networking.firewall.enable = false;
   networking.firewall = {
     trustedInterfaces = [ "tailscale0" ];
   };
