@@ -1,4 +1,10 @@
-{ pkgs, nixpkgs, modulesPath, config, ... }@inp:
+{
+  pkgs,
+  nixpkgs,
+  modulesPath,
+  config,
+  ...
+}@inp:
 
 let
   my-nix-switch = pkgs.writeShellScriptBin "my-nix-switch" ''
@@ -13,57 +19,118 @@ let
   '';
 
   brun = pkgs.writeShellScriptBin "brun" ''
-       ${pkgs.bemenu}/bin/bemenu-run -i -l 10
+    ${pkgs.bemenu}/bin/bemenu-run -i -l 10
 
   '';
 
   runriver = pkgs.writeShellScriptBin "runriver" ''
-           XDG_CURRENT_DESKTOP=sway
-           XKB_DEFAULT_OPTIONS=ctrl:nocaps dbus-run-session ${pkgs.river}/bin/river
+    XDG_CURRENT_DESKTOP=sway
+    XKB_DEFAULT_OPTIONS=ctrl:nocaps dbus-run-session ${pkgs.river}/bin/river
   '';
 
   pkgsU = import inp.nixpkgs-unstable {
     system = pkgs.system;
   };
-in {
-  
-  imports = [ # Include the results of the hardware scan.
+in
+{
+
+  imports = [
+    # Include the results of the hardware scan.
     ./hardware-configuration.nix
   ];
+
+  age.secrets = {
+    nebula-key = {
+      file = ../secrets/nebula-key.age;
+      path = "/etc/nebula-host.key";
+      owner = "nebula-mesh";
+      group = "nebula-mesh";
+      mode = "750";
+    };
+
+    nebula-crt = {
+      file = ../secrets/nebula-crt.age;
+      path = "/etc/nebula-host.crt";
+      owner = "nebula-mesh";
+      group = "nebula-mesh";
+      mode = "750";
+    };
+
+    nebula-ca = {
+      file = ../secrets/nebula-ca.age;
+      path = "/etc/nebula-ca.crt";
+      owner = "nebula-mesh";
+      group = "nebula-mesh";
+      mode = "750";
+    };
+  };
 
   specialisation."default-kernel" = {
     inheritParentConfig = true;
     configuration = {
       system.nixos.tags = [ "default-kernel" ];
       boot = {
-	kernelPackages = pkgs.lib.mkForce pkgs.linuxKernel.packages.linux_6_12;
+        kernelPackages = pkgs.lib.mkForce pkgs.linuxKernel.packages.linux_6_12;
       };
     };
   };
 
-# Use the systemd-boot EFI boot loader.
+  services.nebula.networks.mesh = {
+    # TODO Use agenix
+    ca = config.age.secrets.nebula-ca.path;
+    cert = config.age.secrets.nebula-crt.path;
+    key = config.age.secrets.nebula-key.path;
+
+    enable = true;
+
+    settings.punchy = {
+      punch = true;
+      respond = true;
+    };
+    firewall.inbound = [
+      {
+        host = "any";
+        port = "any";
+        proto = "any";
+      }
+    ];
+
+    firewall.outbound = [
+      {
+        host = "any";
+        port = "any";
+        proto = "any";
+      }
+    ];
+
+    isLighthouse = false;
+    staticHostMap = {
+      "192.168.0.100" = [ "sohamg.xyz:4242" ];
+    };
+    lighthouses = [ "192.168.0.100" ];
+  };
+  # Use the systemd-boot EFI boot loader.
   boot = {
     loader = {
-        # systemd-boot.enable = pkgs.lib.mkForce false;
-        systemd-boot.enable = pkgs.lib.mkForce false;
-        efi.canTouchEfiVariables = true;
-        systemd-boot.configurationLimit = 5;
-        systemd-boot.consoleMode = "auto";
+      # systemd-boot.enable = pkgs.lib.mkForce false;
+      systemd-boot.enable = pkgs.lib.mkForce false;
+      efi.canTouchEfiVariables = true;
+      systemd-boot.configurationLimit = 5;
+      systemd-boot.consoleMode = "auto";
     };
 
     lanzaboote = {
-        enable = true;
-        pkiBundle = "/etc/secureboot";
+      enable = true;
+      pkiBundle = "/etc/secureboot";
     };
 
-
     initrd = {
-      systemd={
+      systemd = {
         enable = true;
-	package = pkgs.systemd.override { withTpm2Tss = true; };
-	tpm2 = {
+        package = pkgs.systemd.override { withTpm2Tss = true; };
+        tpm2 = {
           enable = true;
-	};
+        };
       };
     };
 
@@ -75,7 +142,12 @@ in {
       v4l2loopback.out
       # digimend.out # Digimend is unmaintained.
     ];
-    kernelModules = [ "v4l2loopback" "snd-loop" /* "digimend" */ "kvm-intel" "snd_seq_midi"];
+    kernelModules = [
+      "v4l2loopback"
+      "snd-loop" # "digimend"
+      "kvm-intel"
+      "snd_seq_midi"
+    ];
     plymouth.enable = true;
     plymouth.theme = "breeze";
   }; # boot
@@ -85,11 +157,11 @@ in {
   environment.etc."nix/path/nixpkgs".source = nixpkgs;
   environment.etc."nix/path/nixpkgs-unstable".source = inp.nixpkgs-unstable;
 
-  networking.hostName = "thonker"; 
+  networking.hostName = "thonker";
   networking.networkmanager.enable = true;
 
   # Set your time zone.
- time.timeZone = "America/Chicago";
+  time.timeZone = "America/Chicago";
   # time.timeZone = "Asia/Kolkata";
 
   # Configure network proxy if necessary
@@ -106,7 +178,7 @@ in {
 
   xdg.portal.enable = true;
   xdg.portal.wlr.enable = false;
-  xdg.portal.extraPortals = with pkgs; [xdg-desktop-portal-kde];
+  xdg.portal.extraPortals = with pkgs; [ xdg-desktop-portal-kde ];
   hardware.amdgpu.opencl.enable = true;
   services = {
     openvpn.servers."ACM" = {
@@ -117,10 +189,10 @@ in {
 
     openvpn.restartAfterSleep = true;
     fwupd.enable = true;
-    gvfs.enable=true;
+    gvfs.enable = true;
     tailscale = {
       enable = true;
-      useRoutingFeatures="client";
+      useRoutingFeatures = "client";
     };
     ollama = {
       enable = false;
@@ -156,7 +228,7 @@ in {
     #     esac
     #     '';
     #   };
-  # };
+    # };
 
     keyd = {
       enable = false;
@@ -178,8 +250,6 @@ in {
     # Configure keymap in X11
     xserver.xkb.layout = "us";
 
-
-
     # Enable CUPS to print documents.
     printing.enable = true;
 
@@ -193,34 +263,35 @@ in {
 
     # Combat trackpoint drift.
     udev.extraRules = ''
-    ACTION=="add", SUBSYSTEM=="input", ATTR{name}=="TPPS/2 Elan TrackPoint", ATTR{device/drift_time}="30"
-    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3434", ATTRS{idProduct}=="01e0", MODE="0660", GROUP="users", TAG+="uaccess", TAG+="udev-acl"
+      ACTION=="add", SUBSYSTEM=="input", ATTR{name}=="TPPS/2 Elan TrackPoint", ATTR{device/drift_time}="30"
+      KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3434", ATTRS{idProduct}=="01e0", MODE="0660", GROUP="users", TAG+="uaccess", TAG+="udev-acl"
     '';
-    
+
     flatpak.enable = true;
     #emacs.enable = true;
     # emacs.defaultEditor = true;
     # emacs.package = emx;
 
     avahi = {
-      enable = false;
+      enable = true;
       nssmdns4 = true;
-      publish = { workstation = true; };
+      publish = {
+        workstation = true;
+        addresses = true;
+      };
     };
 
     # https://github.com/linrunner/TLP/issues/436
     tlp.enable = true;
     tlp.settings = {
-      RUNTIME_PM_BLACKLIST="06:00.3 06:00.4";
+      RUNTIME_PM_BLACKLIST = "06:00.3 06:00.4";
       # CPU Settings
-      CPU_SCALING_GOVERNOR_ON_BAT="powersave";
-      CPU_ENERGY_PERF_POLICY_ON_BAT="power";
-  
-  
-  
+      CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
+      CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
+
       # Set CPU frequency to 1.4 GHz (1400000 kHz) on battery
-      CPU_MIN_FREQ_ON_BAT="1400000";
-      CPU_MAX_FREQ_ON_BAT="1400000";
+      CPU_MIN_FREQ_ON_BAT = "1400000";
+      CPU_MAX_FREQ_ON_BAT = "1400000";
     };
     power-profiles-daemon.enable = false;
 
@@ -244,18 +315,18 @@ in {
     # };
 
     guix = {
-        enable = true;
-        extraArgs = ["--substitute-urls=https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://substitutes.nonguix.org"];
+      enable = true;
+      extraArgs = [
+        "--substitute-urls=https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://substitutes.nonguix.org"
+      ];
     };
   }; # services
-
-
 
   security.rtkit.enable = true;
   security.tpm2 = {
     enable = true;
     abrmd.enable = true;
-    pkcs11.enable=true;
+    pkcs11.enable = true;
   };
   services.pipewire = {
     enable = true;
@@ -274,7 +345,6 @@ in {
       General.Experimental = true;
     };
   };
-
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
 
@@ -300,65 +370,106 @@ in {
       "gamemode"
       "tss"
       "incus-admin"
-    ]; 
+    ];
     # Good luck hackers ;)
-    hashedPassword =
-      "$6$dvC5IljJhXvXqZmW$Rgi..E83VMTLTUNp3CWlwoy1mdU7RdETUCeZOg7SvWdHSnxBnH3vPHenmyqr2wBl42dKFaAj74Hcz1LYvQl9z.";
-    packages = with pkgs; [ firefox neovim ];
-    subUidRanges = [{
-    count = 65536;
-    startUid = 100000;
-    } {count=65536; startUid=200000;}];
-    subGidRanges = [{count = 65536; startGid=100000;} {count=65536; startGid=200000;}];
+    hashedPassword = "$6$dvC5IljJhXvXqZmW$Rgi..E83VMTLTUNp3CWlwoy1mdU7RdETUCeZOg7SvWdHSnxBnH3vPHenmyqr2wBl42dKFaAj74Hcz1LYvQl9z.";
+    packages = with pkgs; [
+      firefox
+      neovim
+    ];
+    subUidRanges = [
+      {
+        count = 65536;
+        startUid = 100000;
+      }
+      {
+        count = 65536;
+        startUid = 200000;
+      }
+    ];
+    subGidRanges = [
+      {
+        count = 65536;
+        startGid = 100000;
+      }
+      {
+        count = 65536;
+        startGid = 200000;
+      }
+    ];
   };
 
   users.users.root = {
-    subUidRanges = [{count = 1; startUid=200000;}];
-    subGidRanges = [{count = 1; startGid=200000;}];
+    subUidRanges = [
+      {
+        count = 1;
+        startUid = 200000;
+      }
+    ];
+    subGidRanges = [
+      {
+        count = 1;
+        startGid = 200000;
+      }
+    ];
   };
 
   users.extraUsers.rclone = {
     isNormalUser = false;
     isSystemUser = true;
     extraGroups = [ "sohamg" ];
-    packages = with pkgs; [ rclone vim ];
+    packages = with pkgs; [
+      rclone
+      vim
+    ];
 
   };
   users.users.rclone.group = "rclone";
-  users.groups.rclone = {};
+  users.groups.rclone = { };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   documentation.doc.enable = true;
   documentation.info.enable = true;
   documentation.nixos.enable = true;
-  environment.extraOutputsToInstall = [ "doc" "info" ];
-  environment.systemPackages = with pkgs; [
-    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    wget
-    git
-    sshfs
-    # gnomeExtensions.appindicator
-    # gnomeExtensions.gsconnect
-    psmisc
-    networkmanager-openvpn
-    my-nix-switch
-    man-pages
-    man-pages-posix
-    nvidia-offload
-    home-manager
-    brun
-    xdg-desktop-portal-kde
-    corefonts
-    btrfs-progs
-    pinentry-qt
-    kwalletcli
-    #zerotierone
-    xwaylandvideobridge
-    xorg.xkbcomp
-    keyd
-    texliveFull
-  ] ++ [ pkgsU.sbctl pkgsU.tpm2-tools pkgsU.tpm2-tss ];
+  environment.extraOutputsToInstall = [
+    "doc"
+    "info"
+  ];
+  environment.systemPackages =
+    with pkgs;
+    [
+      vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+      wget
+      git
+      nebula
+      sshfs
+      # gnomeExtensions.appindicator
+      # gnomeExtensions.gsconnect
+      psmisc
+      networkmanager-openvpn
+      my-nix-switch
+      man-pages
+      man-pages-posix
+      nvidia-offload
+      home-manager
+      brun
+      xdg-desktop-portal-kde
+      corefonts
+      btrfs-progs
+      pinentry-qt
+      kwalletcli
+      #zerotierone
+      xwaylandvideobridge
+      xorg.xkbcomp
+      keyd
+      texliveFull
+    ]
+    ++ [
+      pkgsU.sbctl
+      pkgsU.tpm2-tools
+      pkgsU.tpm2-tss
+    ];
   documentation.dev.enable = true;
   environment.sessionVariables = rec {
     # Firefox wayland
@@ -367,9 +478,16 @@ in {
     # ZSH Vim Mode
     VI_MODE_SET_CURSOR = "true";
 
-    PATH = [ "\${HOME}/.local/bin" "/var/lib/flatpak/exports/bin" "~/.local/share/flatpak/exports/bin"];
+    PATH = [
+      "\${HOME}/.local/bin"
+      "/var/lib/flatpak/exports/bin"
+      "~/.local/share/flatpak/exports/bin"
+    ];
 
-    XDG_DATA_DIRS = [ "/var/lib/flatpak/exports/share" "/home/sohamg/.local/share/flatpak/exports/share"];
+    XDG_DATA_DIRS = [
+      "/var/lib/flatpak/exports/share"
+      "/home/sohamg/.local/share/flatpak/exports/share"
+    ];
   };
   programs.command-not-found.enable = true;
   programs.ccache.enable = true;
@@ -391,7 +509,7 @@ in {
     # pinentryFlavor = "qt";
     pinentryPackage = pkgs.pinentry-qt;
     #  enableSSHSupport = true;
-    settings={
+    settings = {
       default-cache-ttl = 6000;
       max-cache-ttl = 6000;
     };
@@ -402,8 +520,8 @@ in {
   # List services that you want to enable:
   programs.ssh.startAgent = true;
   programs.ssh.extraConfig = ''
-  AddKeysToAgent yes
-  EnableSSHKeysign yes
+    AddKeysToAgent yes
+    EnableSSHKeysign yes
   '';
   virtualisation.docker.enable = true;
   users.extraGroups.docker.members = [ "username-with-access-to-socket" ];
@@ -424,17 +542,20 @@ in {
     # lxc.net.0.link = lxcbr0
     # lxc.net.0.flags = up
     defaultConfig = ''
-    lxc.include = ${pkgs.lxcfs}/share/lxc/config/common.conf.d/00-lxcfs.conf
-    lxc.net.0.type = none
+      lxc.include = ${pkgs.lxcfs}/share/lxc/config/common.conf.d/00-lxcfs.conf
+      lxc.net.0.type = none
     '';
     usernetConfig = ''
-    sohamg veth lxcbr0 1000
+      sohamg veth lxcbr0 1000
     '';
   };
   virtualisation.podman = {
     enable = true;
     dockerCompat = false;
-    extraPackages = with pkgs; [ netavark aardvark-dns ];
+    extraPackages = with pkgs; [
+      netavark
+      aardvark-dns
+    ];
   };
   # virtualisation.tpm.enable = true;
   virtualisation.libvirtd.enable = true;
@@ -447,19 +568,21 @@ in {
   users.users.sohamg.shell = pkgs.zsh;
   programs.zsh.autosuggestions.enable = true;
   programs.zsh.syntaxHighlighting.enable = true;
-  programs.zsh.shellAliases = { nixre = "sudo nixos-rebuild switch --flake .#thonker --impure"; };
+  programs.zsh.shellAliases = {
+    nixre = "sudo nixos-rebuild switch --flake .#thonker --impure";
+  };
 
   programs.virt-manager.enable = true;
 
   systemd.user.services.gvfsd = {
     description = "Gvfs";
-    partOf = [ "graphical-session.target" ];    # Ensure the service starts after graphical target is active.
+    partOf = [ "graphical-session.target" ]; # Ensure the service starts after graphical target is active.
     serviceConfig = {
-      ExecStart = "${pkgs.gvfs}/libexec/gvfsd";  # Replace with the command to start your service.
-      Restart = "always";                  # Restart policy (optional).
-      Type="dbus";
-      BusName="org.gtk.vfs.Daemon";
-      Slice="session.slice";
+      ExecStart = "${pkgs.gvfs}/libexec/gvfsd"; # Replace with the command to start your service.
+      Restart = "always"; # Restart policy (optional).
+      Type = "dbus";
+      BusName = "org.gtk.vfs.Daemon";
+      Slice = "session.slice";
     };
   };
 
@@ -471,7 +594,10 @@ in {
       keep-derivations = true
       builders-use-substitutes = true
     '';
-    settings.trusted-users = ["root" "sohamg"];
+    settings.trusted-users = [
+      "root"
+      "sohamg"
+    ];
     settings.sandbox = true;
 
     gc = {
@@ -480,8 +606,8 @@ in {
       persistent = true;
     };
 
-  #  package = pkgs.nixVersions.nix_2_23;
-    nixPath = [ "/etc/nix/path"];
+    #  package = pkgs.nixVersions.nix_2_23;
+    nixPath = [ "/etc/nix/path" ];
     registry = {
       # nixpkgs.to = {
       #   type = "path";
@@ -494,34 +620,42 @@ in {
     };
   };
 
-  swapDevices = [{
-    device = "/swapfile";
-    size = 2048;
-  }];
+  swapDevices = [
+    {
+      device = "/swapfile";
+      size = 2048;
+    }
+  ];
 
   fonts.fontconfig = {
-    defaultFonts.serif = [ "DejaVu Serif" "Noto Color Emoji"];
-    defaultFonts.sansSerif = [ "DejaVu Sans" "Noto Sans" "Noto Color Emoji"];
+    defaultFonts.serif = [
+      "DejaVu Serif"
+      "Noto Color Emoji"
+    ];
+    defaultFonts.sansSerif = [
+      "DejaVu Sans"
+      "Noto Sans"
+      "Noto Color Emoji"
+    ];
   };
 
   fonts.packages = with pkgs; [ corefonts ];
 
- environment.etc."davfs2/secrets" = {
-  text = "${builtins.readFile "/home/sohamg/nixcfg/t495/davsecret"}";
-  mode = "0600";
- };
+  # environment.etc."davfs2/secrets" = {
+  #   text = "${builtins.readFile "/home/sohamg/nixcfg/t495/davsecret"}";
+  #   mode = "0600";
+  # };
 
+  security.pam.services = {
+    login.u2fAuth = true;
+    sudo.u2fAuth = true;
+  };
 
- security.pam.services = {
-   login.u2fAuth = true;
-   sudo.u2fAuth = true;
- };
-
- security.pam.u2f = {
-   settings.cue = true;
-   enable = true;
-   control = "sufficient";
- };
+  security.pam.u2f = {
+    settings.cue = true;
+    enable = true;
+    control = "sufficient";
+  };
 
   # systemd.user.timers."filesync" = {
   #   wantedBy = [ "timers.target" ];
@@ -532,17 +666,19 @@ in {
   #   };
   # };
 
-  systemd.mounts = [{
-    description = "Nextcloud";
-    what = "https://cloud.sohamg.xyz/remote.php/dav/files/sohamg/";
-    # what = "root@sohamg.xyz:/sftp"
-    where = "/mnt/nextcloud";
-    type = "davfs";
-    mountConfig = {
-      TimeoutSec="30s";
-      Options = "uid=sohamg,gid=users";
-    };
-  }];
+  systemd.mounts = [
+    {
+      description = "Nextcloud";
+      what = "https://cloud.sohamg.xyz/remote.php/dav/files/sohamg/";
+      # what = "root@sohamg.xyz:/sftp"
+      where = "/mnt/nextcloud";
+      type = "davfs";
+      mountConfig = {
+        TimeoutSec = "30s";
+        Options = "uid=sohamg,gid=users";
+      };
+    }
+  ];
 
   systemd.oomd = {
     enable = true;
@@ -579,4 +715,3 @@ in {
   system.stateVersion = "23.11"; # Did you read the comment?
 
 }
-
