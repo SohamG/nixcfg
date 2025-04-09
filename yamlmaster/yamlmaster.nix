@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ config, pkgs, ... }@inp:
 
 {
   imports =
@@ -23,6 +23,42 @@
 
   # Enable networking
   networking.networkmanager.enable = true;
+
+  nix = {
+    extraOptions = ''
+      experimental-features = nix-command flakes
+      keep-outputs = true
+      keep-derivations = true
+      builders-use-substitutes = true
+    '';
+    settings.trusted-users = [
+      "root"
+      "sohamg"
+    ];
+    settings.sandbox = true;
+
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      persistent = true;
+    };
+
+    #  package = pkgs.nixVersions.nix_2_23;
+    nixPath = [ "/etc/nix/path" ];
+    registry = {
+      # nixpkgs.to = {
+      #   type = "path";
+      #   path = pkgs.path;
+      # };
+      nixpkgs.to = {
+        type = "path";
+        path = pkgs.path;
+      };
+    };
+  };
+
+  environment.etc."nix/path/nixpkgs".source = inp.nixpkgs;
+  environment.etc."nix/path/nixpkgs-unstable".source = inp.nixpkgs-unstable;
 
   systemd.targets.sleep.enable = false;
   systemd.targets.suspend.enable = false;
@@ -66,6 +102,11 @@
       punch = true;
       respond = true;
     };
+
+    settings.relay = {
+      relays = [ "192.168.0.201" "192.168.0.100" ];
+      use_relays = true;
+    };
     firewall.inbound = [
       {
         host = "any";
@@ -84,9 +125,10 @@
 
     isLighthouse = false;
     staticHostMap = {
+      "192.168.0.201" = [ "teapot.cs.uic.edu:4242" ];
       "192.168.0.100" = [ "sohamg.xyz:4242" ];
     };
-    lighthouses = [ "192.168.0.100" ];
+    lighthouses = [ "192.168.0.201" "192.168.0.100" ];
   };
 
 

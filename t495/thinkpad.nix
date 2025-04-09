@@ -87,6 +87,7 @@ in
       punch = true;
       respond = true;
     };
+
     firewall.inbound = [
       {
         host = "any";
@@ -105,9 +106,10 @@ in
 
     isLighthouse = false;
     staticHostMap = {
+      "192.168.0.201" = [ "teapot.cs.uic.edu:4242" ];
       "192.168.0.100" = [ "sohamg.xyz:4242" ];
     };
-    lighthouses = [ "192.168.0.100" ];
+    lighthouses = [ "192.168.0.201" "192.168.0.100" ];
   };
   # Use the systemd-boot EFI boot loader.
   boot = {
@@ -158,7 +160,10 @@ in
   environment.etc."nix/path/nixpkgs-unstable".source = inp.nixpkgs-unstable;
 
   networking.hostName = "thonker";
-  networking.networkmanager.enable = true;
+  networking.networkmanager = {
+    enable = true;
+    dns = "systemd-resolved";
+  };
 
   # Set your time zone.
   time.timeZone = "America/Chicago";
@@ -191,7 +196,7 @@ in
     fwupd.enable = true;
     gvfs.enable = true;
     tailscale = {
-      enable = true;
+      enable = false;
       useRoutingFeatures = "client";
     };
     ollama = {
@@ -201,8 +206,21 @@ in
         HCC_AMDGPU_TARGET = "amdgcn-amd-amdhsa--gfx902:xnack+"; # used to be necessary, but doesn't seem to anymore
       };
     };
-    resolved.enable = false;
-    resolved.dnssec = "allow-downgrade";
+
+    # Run a local dns resolver because the default linux/glibc resolver
+    # ie /etc/resolv.conf is actually bad. So point it at the stub resolver
+    # which does the actual resolving.
+    # Try to resolve nebula hostnames before trying to go out into the internet.
+    # ResolveUnicastSinglelabel allows DNS-ing undotted single words.
+    resolved = {
+      enable = true;
+      dnssec = "allow-downgrade";
+      extraConfig = ''
+      DNS=192.168.0.100:53%nebula.mesh 192.168.0.201:53%nebula.mesh
+      Cache=no-negative
+      ResolveUnicastSingleLabel=true
+      '';
+    };
     acpid.enable = false;
     # acpid.handlers = {
     #   ac-power = {
@@ -242,7 +260,7 @@ in
     # Enable SSD FS Trim for SSD Goodness
     fstrim.enable = true;
     # Enable the X11 windowing system.
-    xserver.enable = true;
+    xserver.enable = false;
 
     displayManager.sddm.enable = true;
     desktopManager.plasma6.enable = true;
@@ -609,14 +627,14 @@ in
     #  package = pkgs.nixVersions.nix_2_23;
     nixPath = [ "/etc/nix/path" ];
     registry = {
-      # nixpkgs.to = {
-      #   type = "path";
-      #   path = pkgs.path;
-      # };
       nixpkgs.to = {
         type = "path";
-        path = "/etc/nix/path/nixpkgs";
+        path = pkgs.path;
       };
+      # nixpkgs.to = {
+      #   type = "path";
+      #   path = "/etc/nix/path/nixpkgs";
+      # };
     };
   };
 
@@ -694,12 +712,13 @@ in
   networking.firewall.allowedTCPPorts = [ 8080 ];
   networking.firewall.allowedUDPPorts = [ 8080 ];
   # Or disable the firewall altogether.
-  networking.firewall.enable = false;
+  networking.firewall.enable = true;
   networking.firewall = {
-    trustedInterfaces = [ "tailscale0" ];
+    trustedInterfaces = [ "nebula.mesh" ];
   };
-  networking.interfaces.tailscale0.useDHCP = false;
   networking.nftables.enable = true;
+
+  # networking.networkmanager.insertNameservers = [ "192.168.0.100" ];
 
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
