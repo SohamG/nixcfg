@@ -104,6 +104,11 @@
             ];
           })
         ];
+
+        specialArgs = {
+          inherit (inputs) nixpkgs-unstable;
+          inherit (inputs) nixpkgs;
+        };
           
       };
       homeConfigurations."sohamg" = home-manager.lib.homeManagerConfiguration {
