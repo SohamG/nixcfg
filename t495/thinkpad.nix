@@ -218,6 +218,7 @@ in
       extraConfig = ''
       DNS=192.168.0.100:53%nebula.mesh 192.168.0.201:53%nebula.mesh
       Cache=no-negative
+      DNSSEC=false
       ResolveUnicastSingleLabel=true
       '';
     };
