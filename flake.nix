@@ -11,6 +11,7 @@
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+    flake-parts.url = "github:hercules-ci/flake-parts";
 
     agenix = {
       url = "github:ryantm/agenix";
@@ -29,92 +30,139 @@
     #   inputs.nixpkgs.follows = "nixpkgs";
     # };
   };
+  # outputs =
+  #   inputs@{
+  #     nixpkgs,
+  #     home-manager,
+  #     self,
+  #     ...
+  #   }:
+  #   let
+  #     system = "x86_64-linux";
+  #     pkgs =
+  #       import nixpkgs {
+  #         inherit system;
+  #         config = {
+  #           allowUnfree = true;
+  #         };
+  #         overlays = [ (import self.inputs.emacs-overlay) ];
+  #       }
+  #       // {
+  #         outPath = inputs.nixpkgs.outPath;
+  #       };
+  #     pkgs-fork = import inputs.fork-nixpkgs {
+  #       inherit system;
+  #     };
+  #   in
   outputs =
-    inputs@{
-      nixpkgs,
-      home-manager,
-      self,
-      ...
-    }:
-    let
-      system = "x86_64-linux";
-      pkgs =
-        import nixpkgs {
-          inherit system;
-          config = {
-            allowUnfree = true;
+    inputs@{ flake-parts, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } (
+      top@{
+        config,
+        withSystem,
+        moduleWithSystem,
+        ...
+      }:
+      {
+        imports = [
+          inputs.home-manager.flakeModules.default
+        ];
+
+        systems = [ "x86_64-linux" ];
+
+        perSystem =
+          {
+            config,
+            pkgs,
+            self',
+            inputs',
+            system,
+            ...
+          }:
+          {
+            _module.args.pkgs = import inputs.nixpkgs {
+              inherit system;
+              config = {
+                allowUnfree = true;
+              };
+              overlays = [ (import inputs.emacs-overlay) ];
+            };
+
+            packages = {
+              default = inputs'.home-manager.packages.default;
+              custom-emacs = pkgs.callPackage ./custom-emacs.nix { };
+              nebula-nightly = pkgs.callPackage ./nebula-nightly.nix { };
+            };
+
           };
-          overlays = [ (import self.inputs.emacs-overlay) ];
-        }
-        // {
-          outPath = inputs.nixpkgs.outPath;
-        };
-      pkgs-fork = import inputs.fork-nixpkgs {
-        inherit system;
-      };
-    in
-    {
-      defaultPackage.x86_64-linux = home-manager.packages.x86_64-linux.default;
 
-      packages.x86_64-linux.custom-emacs = pkgs.callPackage ./custom-emacs.nix { };
+        flake.nixosConfigurations.nixos = withSystem "x86_64-linux"
+          (ctx@{config, inputs', ... }: inputs.nixpkgs.lib.nixosSystem {
+          modules = [
+            ./dell/configuration.nix
+          ];
+          specialArgs = {
+              inherit (inputs) nixpkgs;
+              inherit (inputs) nixpkgs-unstable;
+          };
+            
+          });
 
-      # nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
-      #   inherit system;
-      #   modules = [
+        flake.nixosConfigurations.thonker = withSystem "x86_64-linux" (
+          ctx@{ config, inputs', ... }:
+          inputs.nixpkgs.lib.nixosSystem {
+            modules = [
+              # inputs.lix-module.nixosModules.default
+              inputs.lanzaboote.nixosModules.lanzaboote
+              ./t495/thinkpad.nix
+              inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t495
+              inputs.agenix.nixosModules.default
+              ({
+                environment.systemPackages = [
+                  inputs'.agenix.packages.default
+                ];
+              })
 
-      #     (import ./dell/configuration.nix {
-      #       inherit pkgs;
-      #       inherit system;
-      #       inherit (inputs) nixpkgs;
-      #       inherit (inputs) nixpkgs-unstable;
-      #     })
-      #   ];
-      # };
-
-      nixosConfigurations.thonker = nixpkgs.lib.nixosSystem {
-        inherit system;
-        modules = [
-          # inputs.lix-module.nixosModules.default
-          inputs.lanzaboote.nixosModules.lanzaboote
-          ./t495/thinkpad.nix
-          inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t495
-          inputs.agenix.nixosModules.default
-          ({
-            environment.systemPackages = [
-              inputs.agenix.packages.${system}.default
             ];
-          })
+            specialArgs = {
+              inherit (inputs) nixpkgs-unstable;
+              inherit (inputs) nixpkgs;
+              inherit (config) packages;
+            };
+          }
+        );
 
-        ];
-        specialArgs = {
-          inherit (inputs) nixpkgs-unstable;
-          inherit (inputs) nixpkgs;
-        };
-      };
+        flake.nixosConfigurations.yamlmaster = withSystem "x86_64-linux" (
+          ctx@{ config, inputs', ... }:
+          inputs.nixpkgs.lib.nixosSystem {
 
-      nixosConfigurations.yamlmaster = nixpkgs.lib.nixosSystem {
-        inherit system;
-
-        modules = [
-          ./yamlmaster/yamlmaster.nix
-          inputs.agenix.nixosModules.default
-          ({
-            environment.systemPackages = [
-              inputs.agenix.packages.${system}.default
+            modules = [
+              ./yamlmaster/yamlmaster.nix
+              inputs.agenix.nixosModules.default
+              ({
+                environment.systemPackages = [
+                  inputs'.agenix.packages.default
+                ];
+              })
             ];
-          })
-        ];
 
-        specialArgs = {
-          inherit (inputs) nixpkgs-unstable;
-          inherit (inputs) nixpkgs;
-        };
-          
-      };
-      homeConfigurations."sohamg" = home-manager.lib.homeManagerConfiguration {
-        inherit pkgs;
-        modules = [ ./home.nix ];
-        extraSpecialArgs = { inherit (inputs) nixpkgs; };
-      };
-    };
+            specialArgs = {
+              inherit (inputs) nixpkgs-unstable;
+              inherit (inputs) nixpkgs;
+
+              inherit (config) packages;
+            };
+
+          }
+        );
+        flake.homeConfigurations.sohamg = withSystem "x86_64-linux" (
+          ctx@{ config, inputs', ... }:
+          inputs.home-manager.lib.homeManagerConfiguration {
+            pkgs = config._module.args.pkgs;
+            modules = [ ./home.nix ];
+            extraSpecialArgs = { inherit (inputs) nixpkgs; };
+          }
+        );
+      }
+    );
 }

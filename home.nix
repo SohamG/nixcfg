@@ -22,15 +22,14 @@ in
   home.extraOutputsToInstall = [ "doc" "info" "man" ];
   home.packages = with pkgs; [
     zsh emx neovim
-    
     gnumake coreutils
     iputils bind ripgrep
-    chromium
+    #chromium
     fira fira-code
     unzip btrfs-progs
     squashfsTools
     qdirstat keepassxc
-    unzip intel-gpu-tools
+    unzip 
     zotero 
     partition-manager
     python310
@@ -39,13 +38,11 @@ in
      screen
     pandoc file # vagrant
     pass-wayland
-    roswell
-    zerotierone
     inetutils pciutils dnsutils
     texliveFull mupdf imagemagick
     aspell aspellDicts.en aspellDicts.en-science aspellDicts.en-computers
     yadm konsave restic graphviz via poppler_utils
-    noto-fonts-color-emoji wezterm zsh-powerlevel10k 
+    noto-fonts-color-emoji zsh-powerlevel10k 
   ];
   # bug
   manual.manpages.enable=false;
@@ -89,16 +86,16 @@ in
     Install.WantedBy = lib.mkForce [ "graphical-session.target" ];
   };
 
-  dconf.settings = {
-    "org/virt-manager/virt-manager/connections" = {
-      autoconnect = ["qemu:///system"];
-      uris = ["qemu:///system"];
-    };
-  };
+  # dconf.settings = {
+  #   "org/virt-manager/virt-manager/connections" = {
+  #     autoconnect = ["qemu:///system"];
+  #     uris = ["qemu:///system"];
+  #   };
+  # };
   
 
   nix = {
-    package = pkgs.nixVersions.nix_2_23;
+    package = pkgs.nixVersions.latest;
     nixPath = [ "/etc/nix/path"];
     registry = {
       # nixpkgs.to = {

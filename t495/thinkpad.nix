@@ -77,12 +77,15 @@ in
 
   services.nebula.networks.mesh = {
     # TODO Use agenix
+    package = inp.packages.nebula-nightly;
+
     ca = config.age.secrets.nebula-ca.path;
     cert = config.age.secrets.nebula-crt.path;
     key = config.age.secrets.nebula-key.path;
 
     enable = true;
 
+    settings.pki.initiating_version = 2;
     settings.punchy = {
       punch = true;
       respond = true;
@@ -106,10 +109,11 @@ in
 
     isLighthouse = false;
     staticHostMap = {
-      "192.168.0.201" = [ "teapot.cs.uic.edu:4242" ];
-      "192.168.0.100" = [ "sohamg.xyz:4242" ];
+      "0.6.9.3" = [ "teapot.cs.uic.edu:4242" ];
+      "0.6.9.1" = [ "sohamg.xyz:4242" ];
+      "fd8c:5016:9b22::1" = ["sohamg.xyz:4242"];
     };
-    lighthouses = [ "192.168.0.201" "192.168.0.100" ];
+    lighthouses = [ "0.6.9.3" "0.6.9.1" ];
   };
   # Use the systemd-boot EFI boot loader.
   boot = {
@@ -628,10 +632,11 @@ in
     #  package = pkgs.nixVersions.nix_2_23;
     nixPath = [ "/etc/nix/path" ];
     registry = {
-      nixpkgs.to = {
-        type = "path";
-        path = pkgs.path;
-      };
+      nixpkgs.flake = inp.nixpkgs;
+      # nixpkgs.to = {
+      #   type = "path";
+      #   path = pkgs.path;
+      # };
       # nixpkgs.to = {
       #   type = "path";
       #   path = "/etc/nix/path/nixpkgs";

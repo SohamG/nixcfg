@@ -95,7 +95,9 @@
     ca = config.age.secrets.nebula-ca.path;
     cert = config.age.secrets.nebula-crt.path;
     key = config.age.secrets.nebula-key.path;
+    package = inp.packages.nebula-nightly;
 
+    settings.pki.initiating_version = 2;
     enable = true;
 
     settings.punchy = {
@@ -104,7 +106,7 @@
     };
 
     settings.relay = {
-      relays = [ "192.168.0.201" "192.168.0.100" ];
+      relays = [ "0.6.9.3" "0.6.9.1" ];
       use_relays = true;
     };
     firewall.inbound = [
@@ -125,10 +127,10 @@
 
     isLighthouse = false;
     staticHostMap = {
-      "192.168.0.201" = [ "teapot.cs.uic.edu:4242" ];
-      "192.168.0.100" = [ "sohamg.xyz:4242" ];
+      "0.6.9.3" = [ "teapot.cs.uic.edu:4242" ];
+      "0.6.9.1" = [ "sohamg.xyz:4242" ];
     };
-    lighthouses = [ "192.168.0.201" "192.168.0.100" ];
+    lighthouses = [ "0.6.9.3" "0.6.9.1" ];
   };
 
 
