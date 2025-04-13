@@ -30,30 +30,6 @@
     #   inputs.nixpkgs.follows = "nixpkgs";
     # };
   };
-  # outputs =
-  #   inputs@{
-  #     nixpkgs,
-  #     home-manager,
-  #     self,
-  #     ...
-  #   }:
-  #   let
-  #     system = "x86_64-linux";
-  #     pkgs =
-  #       import nixpkgs {
-  #         inherit system;
-  #         config = {
-  #           allowUnfree = true;
-  #         };
-  #         overlays = [ (import self.inputs.emacs-overlay) ];
-  #       }
-  #       // {
-  #         outPath = inputs.nixpkgs.outPath;
-  #       };
-  #     pkgs-fork = import inputs.fork-nixpkgs {
-  #       inherit system;
-  #     };
-  #   in
   outputs =
     inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } (
@@ -149,7 +125,6 @@
             specialArgs = {
               inherit (inputs) nixpkgs-unstable;
               inherit (inputs) nixpkgs;
-
               inherit (config) packages;
             };
 
