@@ -7,6 +7,8 @@ in
   "nebula-crt.age".publicKeys = [ thonker ];
   "nebula-ca.age".publicKeys = [ thonker ];
 
+  "openvpn-cfg.age".publicKeys = [ thonker ];
+
   "nebula-yamlmaster-key.age".publicKeys = [ yamlmaster ];
   "nebula-yamlmaster-crt.age".publicKeys = [ yamlmaster ];
   "nebula-yamlmaster-ca.age".publicKeys= [ yamlmaster ];

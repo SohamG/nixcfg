@@ -63,6 +63,12 @@ in
       group = "nebula-mesh";
       mode = "750";
     };
+    openvpn-cfg = {
+      file = ../secrets/openvpn-cfg.age;
+      owner = "root";
+      group = "root";
+      mode = "750";
+    };
   };
 
   specialisation."default-kernel" = {
@@ -191,9 +197,17 @@ in
   hardware.amdgpu.opencl.enable = true;
   services = {
     openvpn.servers."ACM" = {
-      config = "config /home/sohamg/ackem-baked.ovpn";
+      config = "config ${config.age.secrets.openvpn-cfg.path}";
       autoStart = true;
       updateResolvConf = false;
+      up = ''
+         resolvectl dns tun0 $nameserver
+         resolvectl domain tun0 ~$domain
+      '';
+      down = ''
+         resolvectl reset tun0
+      '';
+    
     };
 
     openvpn.restartAfterSleep = true;
@@ -220,7 +234,7 @@ in
       enable = true;
       dnssec = "allow-downgrade";
       extraConfig = ''
-      DNS=192.168.0.100:53%nebula.mesh 192.168.0.201:53%nebula.mesh
+      DNS=0.6.9.1:53%nebula.mesh 0.6.9.3:53%nebula.mesh
       Cache=no-negative
       DNSSEC=false
       ResolveUnicastSingleLabel=true
@@ -486,7 +500,7 @@ in
       xorg.xkbcomp
       keyd
       texliveFull
-      packages.nebula-nightly
+      inp.packages.nebula-nightly
     ]
     ++ [
       pkgsU.sbctl
@@ -718,7 +732,7 @@ in
   networking.firewall.allowedTCPPorts = [ 8080 ];
   networking.firewall.allowedUDPPorts = [ 8080 ];
   # Or disable the firewall altogether.
-  networking.firewall.enable = true;
+  networking.firewall.enable = false;
   networking.firewall = {
     trustedInterfaces = [ "nebula.mesh" ];
   };

@@ -8,6 +8,7 @@
   imports =
     [ # Include the results of the hardware scan.
       ./yamlmaster-hw.nix
+      ./rke2-config.nix
     ];
 
   # Bootloader.
