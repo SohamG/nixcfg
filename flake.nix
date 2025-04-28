@@ -12,7 +12,12 @@
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     flake-parts.url = "github:hercules-ci/flake-parts";
-
+    ghostty = {
+      url = "github:ghostty-org/ghostty";
+      inputs.nixpkgs-stable.follows = "nixpkgs";
+      inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
+    };
+    
     agenix = {
       url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -66,6 +71,7 @@
 
             packages = {
               default = inputs'.home-manager.packages.default;
+              ghostty = inputs'.ghostty.packages.ghostty;
               custom-emacs = pkgs.callPackage ./custom-emacs.nix { };
               nebula-nightly = pkgs.callPackage ./nebula-nightly.nix { };
             };
@@ -75,11 +81,13 @@
         flake.nixosConfigurations.nixos = withSystem "x86_64-linux"
           (ctx@{config, inputs', ... }: inputs.nixpkgs.lib.nixosSystem {
           modules = [
+            inputs.agenix.nixosModules.default
             ./dell/configuration.nix
           ];
           specialArgs = {
               inherit (inputs) nixpkgs;
               inherit (inputs) nixpkgs-unstable;
+              inherit (config) packages;
           };
             
           });
@@ -135,7 +143,10 @@
           inputs.home-manager.lib.homeManagerConfiguration {
             pkgs = config._module.args.pkgs;
             modules = [ ./home.nix ];
-            extraSpecialArgs = { inherit (inputs) nixpkgs; };
+            extraSpecialArgs = {
+              inherit (inputs) nixpkgs;
+              packages = config.packages;
+            };
           }
         );
       }

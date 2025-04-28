@@ -39,6 +39,13 @@ in
     ./hardware-configuration.nix
   ];
 
+  security.sudo = {
+    enable = true;
+    extraRules = ''
+      %wheel ALL=(ALL) NOPASSWD: ${pkgs.systemd}/bin/systemctl
+    '';
+  };
+
   age.secrets = {
     nebula-key = {
       file = ../secrets/nebula-key.age;
@@ -117,9 +124,12 @@ in
     staticHostMap = {
       "0.6.9.3" = [ "teapot.cs.uic.edu:4242" ];
       "0.6.9.1" = [ "sohamg.xyz:4242" ];
-      "fd8c:5016:9b22::1" = ["sohamg.xyz:4242"];
+      "fd8c:5016:9b22::1" = [ "sohamg.xyz:4242" ];
     };
-    lighthouses = [ "0.6.9.3" "0.6.9.1" ];
+    lighthouses = [
+      "0.6.9.3"
+      "0.6.9.1"
+    ];
   };
   # Use the systemd-boot EFI boot loader.
   boot = {
@@ -201,13 +211,13 @@ in
       autoStart = true;
       updateResolvConf = false;
       up = ''
-         resolvectl dns tun0 $nameserver
-         resolvectl domain tun0 ~$domain
+        resolvectl dns tun0 $nameserver
+        resolvectl domain tun0 ~$domain
       '';
       down = ''
-         resolvectl reset tun0
+        resolvectl reset tun0
       '';
-    
+
     };
 
     openvpn.restartAfterSleep = true;
@@ -234,10 +244,10 @@ in
       enable = true;
       dnssec = "allow-downgrade";
       extraConfig = ''
-      DNS=0.6.9.1:53%nebula.mesh 0.6.9.3:53%nebula.mesh
-      Cache=no-negative
-      DNSSEC=false
-      ResolveUnicastSingleLabel=true
+        DNS=0.6.9.1:53%nebula.mesh 0.6.9.3:53%nebula.mesh
+        Cache=no-negative
+        DNSSEC=false
+        ResolveUnicastSingleLabel=true
       '';
     };
     acpid.enable = false;

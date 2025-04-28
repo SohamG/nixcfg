@@ -1,4 +1,4 @@
-{config, pkgs, lib, ...}@inputs: 
+{config, pkgs, lib, packages,...}@inputs: 
 let
   optimizeWithFlag = pkg: flag:
   pkg.overrideAttrs (attrs: {
@@ -9,7 +9,7 @@ let
 
   emx-opt = optimizeWithFlags pkgs.emacs-pgtk [ "-O3" "-march=znver1" "-mtune=znver1" "-fPIC" ];
   emx-opt-xwidgets = (emx-opt.override { withXwidgets = true; }).overrideAttrs (old: { buildInputs = old.buildInputs ++ [ pkgs.webkitgtk_4_0 ];});
-  custom-emx = pkgs.callPackage ./custom-emacs.nix {};
+  custom-emx = packages.custom-emacs;
   emx = with pkgs;
       ((emacsPackagesFor custom-emx).emacsWithPackages
         (epkgs: [ epkgs.vterm epkgs.treesit-grammars.with-all-grammars]));
@@ -24,18 +24,11 @@ in
     zsh emx neovim
     gnumake coreutils
     iputils bind ripgrep
-    #chromium
-    fira fira-code
     unzip btrfs-progs
-    squashfsTools
-    qdirstat keepassxc
-    unzip 
-    zotero 
-    partition-manager
-    python310
+    keepassxc
     openssl
     kubectl kubernetes-helm
-     screen
+    screen
     pandoc file # vagrant
     pass-wayland
     inetutils pciutils dnsutils
@@ -43,7 +36,8 @@ in
     aspell aspellDicts.en aspellDicts.en-science aspellDicts.en-computers
     yadm konsave restic graphviz via poppler_utils
     noto-fonts-color-emoji zsh-powerlevel10k 
-  ];
+    bottom inter nixfmt-rfc-style nmap rustup wireshark
+  ] ++ [ packages.ghostty ];
   # bug
   manual.manpages.enable=false;
   home.stateVersion = "22.05";
@@ -97,17 +91,6 @@ in
   nix = {
     package = pkgs.nixVersions.latest;
     nixPath = [ "/etc/nix/path"];
-    registry = {
-      # nixpkgs.to = {
-      #   type = "path";
-      #   path = pkgs.path;
-      # };
-      # nixpkgs.to = {
-      #   type = "path";
-      #   path = "/etc/nix/path/nixpkgs";
-      # };
-      nixpkgs.flake=inputs.nixpkgs;
-    };
   };
 
 }

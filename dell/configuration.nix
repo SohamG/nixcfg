@@ -28,15 +28,17 @@ let
 in {
   imports = [ # Include the results of the hardware scan.
     ./hardware-configuration.nix
+    ./nebula.nix
   ];
 
-  specialisation."612" = {
-    inheritParentConfig = true;
-    configuration = {
-      boot.kernelPackages = pkgs.lib.mkForce pkgs.linuxPackages_6_12;
 
-    };
-  };
+  # specialisation."612" = {
+  #   inheritParentConfig = true;
+  #   configuration = {
+  #     boot.kernelPackages = pkgs.lib.mkForce pkgs.linuxPackages_6_12;
+
+  #   };
+  # };
   
   # Use the systemd-boot EFI boot loader.
   boot = {
@@ -46,12 +48,14 @@ in {
         systemd-boot.configurationLimit = 5;
         systemd-boot.consoleMode = "auto";
     };
-    kernelPackages = pkgs.linuxPackages;
+    kernelPackages = pkgs.linuxPackages_6_12;
     extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback.out ];
     kernelModules = [ "v4l2loopback" "snd-loop" "kvm-intel"];
     plymouth.enable = true;
     plymouth.theme = "breeze";
   };
+
+  
 
   # Make imperative nixpkgs be same as the flake.
   nix = {
@@ -162,7 +166,11 @@ in {
     avahi = {
       enable = true;
       nssmdns = true;
-      publish = { workstation = true; };
+      publish = {
+        enable = true;
+        addresses = true;
+        workstation = true;
+      };
     };
 
     # tlp.enable = true;
@@ -178,7 +186,7 @@ in {
         # dir_refresh 60
         # buf_size 256'';
     zerotierone = {
-      enable = true;
+      enable = false;
     };
   };
 
@@ -190,6 +198,11 @@ in {
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
+  };
+
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
   };
 
   services.pipewire = {
@@ -261,6 +274,7 @@ in {
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    inp.packages.nebula-nightly
     wget
     sshfs
     # gnomeExtensions.appindicator
@@ -284,7 +298,7 @@ in {
     btrfs-progs
     pinentry-qt
     kwalletcli
-    zerotierone
+    #zerotierone
   ];
   documentation.dev.enable = true;
   environment.sessionVariables = rec {
