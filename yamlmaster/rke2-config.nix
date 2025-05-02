@@ -14,14 +14,8 @@
     role = "agent";
     nodeIP = "0.6.9.2";
     agentTokenFile = config.age.secrets.agent-token.path;
-
     nodeName = "yamlmaster";
 
-    
   };
-
-
-
-
 
 }
