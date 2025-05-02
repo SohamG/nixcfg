@@ -1,0 +1,16 @@
+lxc-create deblxc4 20240914164652.122 INFO     confile - ../src/lxc/confile.c:set_config_idmaps:2273 - Read uid map: type u nsid 0 hostid 100000 range 65536
+lxc-create deblxc4 20240914164652.122 INFO     confile - ../src/lxc/confile.c:set_config_idmaps:2273 - Read uid map: type g nsid 0 hostid 100000 range 65536
+lxc-create deblxc4 20240914164652.122 INFO     conf - ../src/lxc/conf.c:add_idmap_entry:4859 - Adding id map: type u nsid 0 hostid 100000 range 1
+lxc-create deblxc4 20240914164652.122 INFO     conf - ../src/lxc/conf.c:add_idmap_entry:4859 - Adding id map: type u nsid 1000 hostid 1000 range 1
+lxc-create deblxc4 20240914164652.122 INFO     conf - ../src/lxc/conf.c:add_idmap_entry:4859 - Adding id map: type g nsid 0 hostid 100000 range 1
+lxc-create deblxc4 20240914164652.122 INFO     conf - ../src/lxc/conf.c:add_idmap_entry:4859 - Adding id map: type g nsid 100 hostid 100 range 1
+lxc-create deblxc4 20240914164652.122 INFO     conf - ../src/lxc/conf.c:add_idmap_entry:4859 - Adding id map: type g nsid 100000 hostid 200000 range 1
+lxc-create deblxc4 20240914164652.123 DEBUG    idmap_utils - ../src/lxc/idmap_utils.c:idmaptool_on_path_and_privileged:93 - The binary "/run/wrappers/bin/newuidmap" does have the setuid bit set
+lxc-create deblxc4 20240914164652.123 DEBUG    idmap_utils - ../src/lxc/idmap_utils.c:idmaptool_on_path_and_privileged:93 - The binary "/run/wrappers/bin/newgidmap" does have the setuid bit set
+lxc-create deblxc4 20240914164652.123 DEBUG    idmap_utils - ../src/lxc/idmap_utils.c:lxc_map_ids:178 - Functional newuidmap and newgidmap binary found
+lxc-create deblxc4 20240914164652.156 ERROR    idmap_utils - ../src/lxc/idmap_utils.c:lxc_map_ids:245 - newgidmap failed to write mapping "newgidmap: gid range [100000-100001) -> [200000-200001) not allowed": newgidmap 92803 0 100000 1 100 100 1 100000 200000 1
+lxc-create deblxc4 20240914164652.156 ERROR    conf - ../src/lxc/conf.c:userns_exec_mapped_root:5035 - Error setting up {g,u}id mappings for child process "92803"
+lxc-create deblxc4 20240914164652.157 ERROR    utils - ../src/lxc/utils.c:wait_exited:350 - Child terminated with error 1
+lxc-create deblxc4 20240914164652.157 ERROR    lxccontainer - ../src/lxc/lxccontainer.c:do_create_container_dir:1196 - File exists - Failed to chown rootfs "/home/sohamg/.local/share/lxc/deblxc4"
+lxc-create deblxc4 20240914164652.157 ERROR    lxccontainer - ../src/lxc/lxccontainer.c:__lxcapi_create:1779 - Failed to create container deblxc4
+lxc-create deblxc4 20240914164652.157 ERROR    lxc_create - ../src/lxc/tools/lxc_create.c:lxc_create_main:318 - Failed to create container deblxc4

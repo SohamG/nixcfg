@@ -8,7 +8,8 @@
   imports =
     [ # Include the results of the hardware scan.
       ./yamlmaster-hw.nix
-      ./rke2-config.nix
+  #    ./rke2-config.nix
+      ./remote-build.nix
     ];
 
   # Bootloader.
@@ -24,6 +25,10 @@
 
   # Enable networking
   networking.networkmanager.enable = true;
+
+  virtualisation.docker.enable = true;
+
+  users.extraGroups.docker.members = [ "sohamg" ];
 
   nix = {
     extraOptions = ''
