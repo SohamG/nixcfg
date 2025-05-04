@@ -8,7 +8,7 @@
   imports =
     [ # Include the results of the hardware scan.
       ./yamlmaster-hw.nix
-  #    ./rke2-config.nix
+      ./k3s-config.nix
       ./remote-build.nix
     ];
 
@@ -98,13 +98,14 @@
   };
 
   services.nebula.networks.mesh = {
+    enable = true;
     ca = config.age.secrets.nebula-ca.path;
     cert = config.age.secrets.nebula-crt.path;
     key = config.age.secrets.nebula-key.path;
     package = inp.packages.nebula-nightly;
 
     settings.pki.initiating_version = 2;
-    enable = true;
+    settings.listen.host = "[::]";
 
     settings.punchy = {
       punch = true;

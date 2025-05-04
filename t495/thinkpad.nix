@@ -89,6 +89,8 @@ in
   };
 
   services.nebula.networks.mesh = {
+
+    enable = true;
     # TODO Use agenix
     package = inp.packages.nebula-nightly;
 
@@ -96,7 +98,8 @@ in
     cert = config.age.secrets.nebula-crt.path;
     key = config.age.secrets.nebula-key.path;
 
-    enable = true;
+
+    settings.listen.host = "[::]";
 
     settings.pki.initiating_version = 2;
     settings.punchy = {
