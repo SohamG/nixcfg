@@ -15,4 +15,8 @@ yamlmaster: yamlmaster/*
 	nixos-rebuild switch --flake .#yamlmaster --target-host "root@yamlmaster.sohamg.xyz" --build-host "root@yamlmaster.sohamg.xyz"
 	touch yamlmaster
 
+dell: dell/*
+	nixos-rebuild switch --flake .#nixos --target-host "root@0.6.9.6" --build-host "root@0.6.9.6"
+	touch dell
+
 .PHONY: up flake-update

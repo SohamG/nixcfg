@@ -89,7 +89,7 @@
     };
 
     nebula-ca = {
-      file = ../secrets/nebula-yamlmaster-ca.age;
+      file = ../secrets/nebula-bundle.age;
       path = "/etc/nebula-ca.crt";
       owner = "nebula-mesh";
       group = "nebula-mesh";
@@ -217,8 +217,8 @@
   };
 
   # Enable automatic login for the user.
-  services.xserver.displayManager.autoLogin.enable = false;
-  services.xserver.displayManager.autoLogin.user = false;
+  services.displayManager.autoLogin.enable = false;
+  services.displayManager.autoLogin.user = false;
 
   # Install firefox.
   programs.firefox.enable = false;

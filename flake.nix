@@ -4,18 +4,19 @@
   inputs = {
 
     # Prefer using github: to prevent hash mismatches.
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/master";
-    home-manager.url = "github:nix-community/home-manager";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     flake-parts.url = "github:hercules-ci/flake-parts";
+
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+
     ghostty = {
       url = "github:ghostty-org/ghostty";
-      inputs.nixpkgs-stable.follows = "nixpkgs";
-      inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
     };
     
     agenix = {
@@ -42,11 +43,18 @@
         config,
         withSystem,
         moduleWithSystem,
+        flake-parts-lib,
         ...
       }:
+      let
+        inherit (flake-parts-lib) importApply;
+        # flakeModules.nebula = importApply ./nebulaModule.nix {
+        #   localFlake = self;
+        # };
+      in
       {
         imports = [
-          inputs.home-manager.flakeModules.default
+          # inputs.home-manager.flakeModules.default
         ];
 
         systems = [ "x86_64-linux" ];
@@ -72,8 +80,8 @@
             packages = {
               default = inputs'.home-manager.packages.default;
               ghostty = inputs'.ghostty.packages.ghostty;
-              custom-emacs = pkgs.callPackage ./custom-emacs.nix { };
               nebula-nightly = pkgs.callPackage ./nebula-nightly.nix { };
+              custom-emacs = pkgs.callPackage ./custom-emacs.nix { };
             };
 
           };
@@ -97,16 +105,18 @@
           inputs.nixpkgs.lib.nixosSystem {
             modules = [
               # inputs.lix-module.nixosModules.default
+              inputs.determinate.nixosModules.default
               inputs.lanzaboote.nixosModules.lanzaboote
               ./t495/thinkpad.nix
               inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t495
               inputs.agenix.nixosModules.default
+              /home/sohamg/work/nixpkgs-trees/run0/nixos/modules/security/run0.nix
               ({
                 environment.systemPackages = [
                   inputs'.agenix.packages.default
                 ];
+                security.run0.enable = true;
               })
-
             ];
             specialArgs = {
               inherit (inputs) nixpkgs-unstable;
@@ -127,6 +137,7 @@
                 environment.systemPackages = [
                   inputs'.agenix.packages.default
                 ];
+                nix.registry.self.flake = ctx.self';
               })
             ];
 
@@ -139,9 +150,9 @@
           }
         );
         flake.homeConfigurations.sohamg = withSystem "x86_64-linux" (
-          ctx@{ config, inputs', ... }:
+          ctx@{ config, inputs', self', ... }:
           inputs.home-manager.lib.homeManagerConfiguration {
-            pkgs = config._module.args.pkgs;
+            inherit (ctx) pkgs;
             modules = [ ./home.nix ];
             extraSpecialArgs = {
               inherit (inputs) nixpkgs;
@@ -149,6 +160,9 @@
             };
           }
         );
-      }
-    );
+
+        flake.templates.default = {
+          path = ./template;
+        };
+      });
 }

@@ -36,7 +36,7 @@ in
     aspell aspellDicts.en aspellDicts.en-science aspellDicts.en-computers
     yadm konsave restic graphviz via poppler_utils
     noto-fonts-color-emoji zsh-powerlevel10k 
-    bottom inter nixfmt-rfc-style nmap rustup wireshark
+    bottom inter nixfmt-rfc-style nmap rustup wireshark rclone gcc.info
   ] ++ [ packages.ghostty ];
   # bug
   manual.manpages.enable=false;
@@ -57,6 +57,7 @@ in
       RESTIC_REPOSITORY="sftp:rsync.net:restic";
       RESTIC_PASSWORD_FILE="$HOME/restic.key";
       EDITOR="emacsclient -r";
+      INFOPATH="$\{HOME}/.local/share/info:$\{INFOPATH}";
     };
     # file.".zshenv" = {
     #   enable = true;

@@ -143,7 +143,7 @@ in {
     # xserver.desktopManager.gnome.enable = true;
     # Try KDE LOL
     xserver.displayManager.sddm.enable = true;
-    xserver.desktopManager.plasma5.enable = true;
+    xserver.desktopManager.plasma6.enable = true;
 
     # Configure keymap in X11
     xserver.layout = "us";
@@ -299,6 +299,7 @@ in {
     pinentry-qt
     kwalletcli
     #zerotierone
+    kdePackages.krfb
   ];
   documentation.dev.enable = true;
   environment.sessionVariables = rec {

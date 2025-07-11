@@ -37,6 +37,7 @@ in
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
+  #  ./freeipa.nix
   ];
 
   security.sudo = {
@@ -64,7 +65,7 @@ in
     };
 
     nebula-ca = {
-      file = ../secrets/nebula-ca.age;
+      file = ../secrets/nebula-bundle.age;
       path = "/etc/nebula-ca.crt";
       owner = "nebula-mesh";
       group = "nebula-mesh";
@@ -81,11 +82,22 @@ in
   specialisation."default-kernel" = {
     inheritParentConfig = true;
     configuration = {
+      environment.etc."specialisation".text = "default-kernel";
       system.nixos.tags = [ "default-kernel" ];
       boot = {
         kernelPackages = pkgs.lib.mkForce pkgs.linuxKernel.packages.linux_6_12;
       };
     };
+  };
+
+  systemd.services.nebula-dns = {
+    enable = true;
+    script = ''
+      resolvectl domain nebula.mesh ~sohamg.xyz
+      resolvectl dns nebula.mesh 0.6.9.2
+    '';
+    after = [ "nebula@mesh.service" ];
+    description = "Set domain and DNS with resolved for nebula";
   };
 
   services.nebula.networks.mesh = {
@@ -134,6 +146,7 @@ in
       "0.6.9.1"
     ];
   };
+
   # Use the systemd-boot EFI boot loader.
   boot = {
     loader = {
@@ -204,9 +217,27 @@ in
   #   useXkbConfig = true; # use xkbOptions in tt.
   # };
 
+
+  security.krb5 = {
+    enable = true;
+    settings = {
+      libdefaults = {
+        dns_lookup_kdc = true;
+        dns_lookup_realm = true;
+        default_realm = "SOHAMG.XYZ";
+      };
+      realms = {
+        "SOHAMG.XYZ" = {
+          admin_server = "ipa.sohamg.xyz";
+          default_domain = "sohamg.xyz";
+        };
+      };
+    };
+  };
+
   xdg.portal.enable = true;
   xdg.portal.wlr.enable = false;
-  xdg.portal.extraPortals = with pkgs; [ xdg-desktop-portal-kde ];
+  xdg.portal.extraPortals = with pkgs; [ kdePackages.xdg-desktop-portal-kde ];
   hardware.amdgpu.opencl.enable = true;
   services = {
     openvpn.servers."ACM" = {
@@ -365,7 +396,7 @@ in
     # };
 
     guix = {
-      enable = true;
+      enable = false;
       extraArgs = [
         "--substitute-urls=https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://substitutes.nonguix.org"
       ];
@@ -503,17 +534,18 @@ in
       nvidia-offload
       home-manager
       brun
-      xdg-desktop-portal-kde
+      kdePackages.xdg-desktop-portal-kde
       corefonts
       btrfs-progs
       pinentry-qt
       kwalletcli
       #zerotierone
-      xwaylandvideobridge
+      kdePackages.xwaylandvideobridge
       xorg.xkbcomp
       keyd
       texliveFull
       inp.packages.nebula-nightly
+      kdePackages.krfb
     ]
     ++ [
       pkgsU.sbctl
@@ -539,8 +571,13 @@ in
       "/home/sohamg/.local/share/flatpak/exports/share"
     ];
   };
+  programs.nh = {
+    enable = true;
+  };
   programs.command-not-found.enable = true;
+  programs.mosh.enable = true;
   programs.ccache.enable = true;
+  programs.thunderbird.enable = true;
   # programs.ryzen-ppd = {
   #   package = inp.pkgs-fork.ryzen-ppd;
   #   enable = true;
@@ -569,12 +606,13 @@ in
   programs.nix-ld.enable = true;
   # List services that you want to enable:
   programs.ssh.startAgent = true;
+  programs.ssh.package = pkgs.openssh_gssapi;
   programs.ssh.extraConfig = ''
     AddKeysToAgent yes
     EnableSSHKeysign yes
   '';
   virtualisation.docker.enable = true;
-  users.extraGroups.docker.members = [ "username-with-access-to-socket" ];
+  users.extraGroups.docker.members = [ "sohamg" ];
 
   virtualisation.lxc = {
     lxcfs.enable = false;
@@ -637,12 +675,21 @@ in
   };
 
   nixpkgs.config.allowUnfree = true;
+  # environment.etc."nix/nix.custom.conf" = {
+  #   enable = true;
+  #   text = ''
+  #     builders-use-substitutes = true
+  #     lazy-trees = true
+  #     trusted-users = [ "sohamg" "root" ]
+  #   '';
+  # };
   nix = {
     extraOptions = ''
       experimental-features = nix-command flakes
       keep-outputs = true
       keep-derivations = true
       builders-use-substitutes = true
+      lazy-trees = true
     '';
     settings.trusted-users = [
       "root"
@@ -659,11 +706,14 @@ in
     #  package = pkgs.nixVersions.nix_2_23;
     nixPath = [ "/etc/nix/path" ];
     registry = {
-      nixpkgs.flake = inp.nixpkgs;
-      # nixpkgs.to = {
-      #   type = "path";
-      #   path = pkgs.path;
-      # };
+      # nixpkgs.flake = inp.nixpkgs;
+      nixpkgs.to = {
+        type = "github";
+        owner = "nixos";
+        repo = "nixpkgs";
+        ref = "25.05";
+      };
+        
       # nixpkgs.to = {
       #   type = "path";
       #   path = "/etc/nix/path/nixpkgs";
@@ -720,6 +770,8 @@ in
   security.pam.services = {
     login.u2fAuth = true;
     sudo.u2fAuth = true;
+    # Fix run0
+    systemd-run0 = {};
   };
 
   security.pam.u2f = {
