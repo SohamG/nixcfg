@@ -110,12 +110,10 @@
               ./t495/thinkpad.nix
               inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t495
               inputs.agenix.nixosModules.default
-              /home/sohamg/work/nixpkgs-trees/run0/nixos/modules/security/run0.nix
               ({
                 environment.systemPackages = [
                   inputs'.agenix.packages.default
                 ];
-                security.run0.enable = true;
               })
             ];
             specialArgs = {
