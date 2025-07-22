@@ -5,6 +5,7 @@
 
     # Prefer using github: to prevent hash mismatches.
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/25.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -118,6 +119,7 @@
             ];
             specialArgs = {
               inherit (inputs) nixpkgs-unstable;
+              inherit (inputs) nixpkgs-stable;
               inherit (inputs) nixpkgs;
               inherit (config) packages;
             };

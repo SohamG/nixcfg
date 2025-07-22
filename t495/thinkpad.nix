@@ -137,12 +137,12 @@ in
 
     isLighthouse = false;
     staticHostMap = {
-      "0.6.9.3" = [ "teapot.cs.uic.edu:4242" ];
+      # "0.6.9.3" = [ "teapot.cs.uic.edu:4242" ];
       "0.6.9.1" = [ "sohamg.xyz:4242" ];
       "fd8c:5016:9b22::1" = [ "sohamg.xyz:4242" ];
     };
     lighthouses = [
-      "0.6.9.3"
+      # "0.6.9.3"
       "0.6.9.1"
     ];
   };
@@ -192,7 +192,7 @@ in
 
   # Make imperative nixpkgs be same as the flake.
 
-  environment.etc."nix/path/nixpkgs".source = nixpkgs;
+  environment.etc."nix/path/nixpkgs".source = inp.nixpkgs-stable;
   environment.etc."nix/path/nixpkgs-unstable".source = inp.nixpkgs-unstable;
 
   networking.hostName = "thonker";
