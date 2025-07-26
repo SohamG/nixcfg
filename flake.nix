@@ -137,7 +137,6 @@
                 environment.systemPackages = [
                   inputs'.agenix.packages.default
                 ];
-                nix.registry.self.flake = ctx.self';
               })
             ];
 

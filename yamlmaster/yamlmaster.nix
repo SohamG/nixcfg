@@ -51,16 +51,16 @@
 
     #  package = pkgs.nixVersions.nix_2_23;
     nixPath = [ "/etc/nix/path" ];
-    registry = {
-      # nixpkgs.to = {
-      #   type = "path";
-      #   path = pkgs.path;
-      # };
-      nixpkgs.to = {
-        type = "path";
-        path = pkgs.path;
-      };
-    };
+    # registry = {
+    #   # nixpkgs.to = {
+    #   #   type = "path";
+    #   #   path = pkgs.path;
+    #   # };
+    #   # nixpkgs.to = {
+    #   #   type = "path";
+    #   #   path = pkgs.path;
+    #   # };
+    # };
   };
 
   environment.etc."nix/path/nixpkgs".source = inp.nixpkgs;
@@ -113,7 +113,7 @@
     };
 
     settings.relay = {
-      relays = [ "0.6.9.3" "0.6.9.1" ];
+      relays = [ "0.6.9.1" ];
       use_relays = true;
     };
     firewall.inbound = [

@@ -37,7 +37,8 @@ in
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
-  #  ./freeipa.nix
+    #  ./freeipa.nix
+    ./dav-sync.nix
   ];
 
   security.sudo = {
@@ -109,7 +110,6 @@ in
     ca = config.age.secrets.nebula-ca.path;
     cert = config.age.secrets.nebula-crt.path;
     key = config.age.secrets.nebula-key.path;
-
 
     settings.listen.host = "[::]";
 
@@ -216,7 +216,6 @@ in
   #   keyMap = "us";
   #   useXkbConfig = true; # use xkbOptions in tt.
   # };
-
 
   security.krb5 = {
     enable = true;
@@ -376,18 +375,6 @@ in
     };
     power-profiles-daemon.enable = false;
 
-    davfs2.enable = false;
-    davfs2.settings = {
-      globalSection = {
-        cache_size = 500;
-        gui_optimize = 1;
-        ignore_dav_header = 1;
-        use_locks = 0;
-        file_refresh = 60;
-        dir_refresh = 60;
-        buf_size = 256;
-      };
-    };
     zerotierone = {
       enable = false;
     };
@@ -713,7 +700,7 @@ in
         repo = "nixpkgs";
         ref = "25.05";
       };
-        
+
       # nixpkgs.to = {
       #   type = "path";
       #   path = "/etc/nix/path/nixpkgs";
@@ -762,16 +749,12 @@ in
 
   fonts.packages = with pkgs; [ corefonts ];
 
-  # environment.etc."davfs2/secrets" = {
-  #   text = "${builtins.readFile "/home/sohamg/nixcfg/t495/davsecret"}";
-  #   mode = "0600";
-  # };
 
   security.pam.services = {
     login.u2fAuth = true;
     sudo.u2fAuth = true;
     # Fix run0
-    systemd-run0 = {};
+    systemd-run0 = { };
   };
 
   security.pam.u2f = {
@@ -789,30 +772,12 @@ in
   #   };
   # };
 
-  systemd.mounts = [
-    {
-      description = "Nextcloud";
-      what = "https://cloud.sohamg.xyz/remote.php/dav/files/sohamg/";
-      # what = "root@sohamg.xyz:/sftp"
-      where = "/mnt/nextcloud";
-      type = "davfs";
-      mountConfig = {
-        TimeoutSec = "30s";
-        Options = "uid=sohamg,gid=users";
-      };
-    }
-  ];
 
   systemd.oomd = {
     enable = true;
     enableUserSlices = true;
     enableRootSlice = true;
   };
-  # systemd.automounts = [{
-  #   description = "Nextcloud auto";
-  #   where = "/mnt/nextcloud";
-  #   wantedBy = ["multi-user.target"];
-  # }];
   # Open ports in the firewall.
   networking.firewall.allowedTCPPorts = [ 8080 ];
   networking.firewall.allowedUDPPorts = [ 8080 ];

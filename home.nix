@@ -31,15 +31,15 @@ in
     screen
     pandoc file # vagrant
     pass-wayland
-    inetutils pciutils dnsutils
+    pciutils dnsutils
     texliveFull mupdf imagemagick
     aspell aspellDicts.en aspellDicts.en-science aspellDicts.en-computers
     yadm konsave restic graphviz via poppler_utils
     noto-fonts-color-emoji zsh-powerlevel10k 
-    bottom inter nixfmt-rfc-style nmap rustup wireshark rclone gcc.info
+    bottom inter nixfmt-rfc-style nmap rustup wireshark rclone gcc.info traceroute
   ] ++ [ packages.ghostty ];
   # bug
-  manual.manpages.enable=false;
+  manual.manpages.enable=true;
   home.stateVersion = "22.05";
   programs.home-manager.enable = true;
   programs.direnv.enable = true;
