@@ -22,15 +22,13 @@
   # };
   systemd.automounts = [
     {
-      description = "Stalwart auto";
+      description = "Stalwart automount";
       where = "/mnt/dav";
       wantedBy = [ "multi-user.target" ];
     }
   ];
   systemd.mounts = [
     {
-      wantedBy = [ "multi-user.target" ];
-      enable = true;
       description = "Stalwart Dav";
       what = "https://mail.loveyaml.org/dav/file/sohamg";
       where = "/mnt/dav";
@@ -58,7 +56,7 @@
   systemd.services.unison = {
     enable = true;
     wantedBy = ["multi-user.target"];
-    after = ["network.target"];
+    after = ["mnt-dav.mount" "network.target"];
     unitConfig = {
       RequiresMountsFor="/mnt/dav";
       AssertFileIsNotEmpty="/etc/unison/dav.prf";
