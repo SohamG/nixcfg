@@ -8,11 +8,10 @@
       globalSection = {
         cache_size = 500;
         gui_optimize = 1;
-        ignore_dav_header = 1;
-        use_locks = 1;
+        use_locks = 0;
         file_refresh = 60;
         dir_refresh = 60;
-        buf_size = 256;
+        # buf_size = 256;
       };
     };
   };
@@ -35,7 +34,7 @@
       type = "davfs";
       mountConfig = {
         TimeoutSec = "30s";
-        Options = "uid=sohamg,gid=users";
+        Options = "uid=sohamg,gid=users,rw";
       };
     }
   ];
@@ -43,26 +42,32 @@
   environment.etc."unison/dav.prf" = {
     enable = true;
     text = ''
-    root = home/sohamg/Nextcloud
-    root = mnt/dav
+    root = /home/sohamg/Nextcloud
+    root = /mnt/dav
     auto = true
     batch = true
     prefer = newer
-    repeat = watch
-    unicode = true
+    repeat = watch+500
+    unicode = false
+    perms = 0
+    dontchmod = true
+    ignorecase = false
+    copyonconflict = true
     '';
 
   };
   systemd.services.unison = {
     enable = true;
     wantedBy = ["multi-user.target"];
-    after = ["mnt-dav.mount" "network.target"];
+    after = ["network.target"];
     unitConfig = {
       RequiresMountsFor="/mnt/dav";
-      AssertFileIsNotEmpty="/etc/unison/dav.prf";
+      AssertFileNotEmpty="/etc/unison/dav.prf";
     };
 
     serviceConfig = {
+      User="root";
+      Group="root";
       ExecStart = "${pkgs.unison}/bin/unison dav";
       Environment = "UNISON=/etc/unison";
       ProtectSystem = "full";
