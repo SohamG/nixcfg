@@ -83,6 +83,8 @@
     };
   };
 
+  systemd.services.k3s.serviceConfig."LimitNOFILE" = pkgs.lib.mkForce "infinity";
+
   services.openiscsi = {
     enable = true;
     name = "${config.networking.hostName}-initiatorhost";

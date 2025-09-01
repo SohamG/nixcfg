@@ -1,45 +1,98 @@
-{config, pkgs, lib, packages,...}@inputs: 
+{
+  config,
+  pkgs,
+  lib,
+  packages,
+  ...
+}@inputs:
 let
-  optimizeWithFlag = pkg: flag:
-  pkg.overrideAttrs (attrs: {
-    NIX_CFLAGS_COMPILE = (attrs.NIX_CFLAGS_COMPILE or "") + " ${flag}";
-  });
-  
+  optimizeWithFlag =
+    pkg: flag:
+    pkg.overrideAttrs (attrs: {
+      NIX_CFLAGS_COMPILE = (attrs.NIX_CFLAGS_COMPILE or "") + " ${flag}";
+    });
+
   optimizeWithFlags = pkg: flags: pkgs.lib.foldl' (pkg: flag: optimizeWithFlag pkg flag) pkg flags;
 
-  emx-opt = optimizeWithFlags pkgs.emacs-pgtk [ "-O3" "-march=znver1" "-mtune=znver1" "-fPIC" ];
-  emx-opt-xwidgets = (emx-opt.override { withXwidgets = true; }).overrideAttrs (old: { buildInputs = old.buildInputs ++ [ pkgs.webkitgtk_4_0 ];});
+  # emx-opt = optimizeWithFlags pkgs.emacs-pgtk [
+  #   "-O3"
+  #   "-march=znver1"
+  #   "-mtune=znver1"
+  #   "-fPIC"
+  # ];
+  # emx-opt-xwidgets = (emx-opt.override { withXwidgets = true; }).overrideAttrs (old: {
+  #   buildInputs = old.buildInputs ++ [ pkgs.webkitgtk_4_0 ];
+  # });
   custom-emx = packages.custom-emacs;
-  emx = with pkgs;
-      ((emacsPackagesFor custom-emx).emacsWithPackages
-        (epkgs: [ epkgs.vterm epkgs.treesit-grammars.with-all-grammars]));
+  emx =
+    with pkgs;
+    ((emacsPackagesFor custom-emx).emacsWithPackages (epkgs: [
+      epkgs.vterm
+      epkgs.treesit-grammars.with-all-grammars
+    ]));
   # emx = with pkgs;emacs29-pgtk;
 in
 {
   home.enableNixpkgsReleaseCheck = false;
   home.username = "sohamg";
   home.homeDirectory = "/home/sohamg";
-  home.extraOutputsToInstall = [ "doc" "info" "man" ];
-  home.packages = with pkgs; [
-    zsh emx neovim
-    gnumake coreutils
-    iputils bind ripgrep
-    unzip btrfs-progs
-    keepassxc
-    openssl
-    kubectl kubernetes-helm
-    screen
-    pandoc file # vagrant
-    pass-wayland
-    pciutils dnsutils
-    texliveFull mupdf imagemagick
-    aspell aspellDicts.en aspellDicts.en-science aspellDicts.en-computers
-    yadm konsave restic graphviz via poppler_utils
-    noto-fonts-color-emoji zsh-powerlevel10k 
-    bottom inter nixfmt-rfc-style nmap rustup wireshark rclone gcc.info traceroute
-  ] ++ [ packages.ghostty ];
+  home.extraOutputsToInstall = [
+    "doc"
+    "info"
+    "man"
+  ];
+  home.packages =
+    with pkgs;
+    [
+      zsh
+      emx
+      neovim
+      gnumake
+      coreutils
+      iputils
+      bind
+      ripgrep
+      unzip
+      btrfs-progs
+      keepassxc
+      openssl
+      kubectl
+      kubernetes-helm
+      screen
+      pandoc
+      file # vagrant
+      pass-wayland
+      pciutils
+      dnsutils
+      texliveFull
+      mupdf
+      imagemagick
+      aspell
+      aspellDicts.en
+      aspellDicts.en-science
+      aspellDicts.en-computers
+      yadm
+      konsave
+      restic
+      graphviz
+      via
+      poppler_utils
+      noto-fonts-color-emoji
+      zsh-powerlevel10k
+      bottom
+      inter
+      nixfmt-rfc-style
+      nmap
+      rustup
+      wireshark
+      rclone
+      gcc.info
+      traceroute
+      usbutils
+    ]
+    ++ [ packages.ghostty ];
   # bug
-  manual.manpages.enable=true;
+  manual.manpages.enable = true;
   home.stateVersion = "22.05";
   programs.home-manager.enable = true;
   programs.direnv.enable = true;
@@ -54,10 +107,11 @@ in
   programs.go.enable = true;
   home = {
     sessionVariables = {
-      RESTIC_REPOSITORY="sftp:rsync.net:restic";
-      RESTIC_PASSWORD_FILE="$HOME/restic.key";
-      EDITOR="emacsclient -r";
-      INFOPATH="$\{HOME}/.local/share/info:$\{INFOPATH}";
+      RESTIC_REPOSITORY = "sftp:rsync.net:restic";
+      RESTIC_PASSWORD_FILE = "$HOME/restic.key";
+      EDITOR = "emacsclient -r";
+      INFOPATH = "$\{HOME}/.local/share/info:$\{INFOPATH}";
+      MITMPROXY_SSLKEYLOGFILE="$\{HOME}/.mitmproxy/sslkeylogfile.txt";
     };
     # file.".zshenv" = {
     #   enable = true;
@@ -87,15 +141,14 @@ in
   #     uris = ["qemu:///system"];
   #   };
   # };
-  
 
   nix = {
     package = pkgs.nixVersions.latest;
-    nixPath = [ "/etc/nix/path"];
+    nixPath = [ "/etc/nix/path" ];
   };
 
 }
-  # Email
+# Email
 
 #  programs.mbsync.enable = true;
 #  programs.msmtp.enable = true;

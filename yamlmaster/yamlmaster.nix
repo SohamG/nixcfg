@@ -106,6 +106,7 @@
 
     settings.pki.initiating_version = 2;
     settings.listen.host = "[::]";
+    settings.listen.port = 4242;
 
     settings.punchy = {
       punch = true;
@@ -137,7 +138,10 @@
       "0.6.9.3" = [ "teapot.cs.uic.edu:4242" ];
       "0.6.9.1" = [ "sohamg.xyz:4242" ];
     };
-    lighthouses = [ "0.6.9.3" "0.6.9.1" ];
+    lighthouses = [
+     # "0.6.9.3"
+      "0.6.9.1"
+    ];
   };
 
 

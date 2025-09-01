@@ -14,7 +14,7 @@
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     flake-parts.url = "github:hercules-ci/flake-parts";
 
-    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+    #determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
 
     ghostty = {
       url = "github:ghostty-org/ghostty";
@@ -28,14 +28,13 @@
 
     lanzaboote = {
       url = "github:nix-community/lanzaboote/v0.4.2";
-
       # Optional but recommended to limit the size of your system closure.
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      # inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
-    # lix-module = {
-    #   url = "https://git.lix.systems/lix-project/nixos-module/archive/2.92.0-1.tar.gz";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
+    lix-module = {
+      url="https://git.lix.systems/lix-project/nixos-module/archive/2.93.3-1.tar.gz";
+      inputs.nixpkgs.follows="nixpkgs";
+    };
   };
   outputs =
     inputs@{ flake-parts, ... }:
@@ -75,7 +74,10 @@
               config = {
                 allowUnfree = true;
               };
-              overlays = [ (import inputs.emacs-overlay) ];
+              overlays = [
+                (import inputs.emacs-overlay)
+                inputs.lix-module.overlays.default
+              ];
             };
 
             packages = {
@@ -105,8 +107,8 @@
           ctx@{ config, inputs', ... }:
           inputs.nixpkgs.lib.nixosSystem {
             modules = [
-              # inputs.lix-module.nixosModules.default
-              inputs.determinate.nixosModules.default
+              inputs.lix-module.nixosModules.default
+              # inputs.determinate.nixosModules.default
               inputs.lanzaboote.nixosModules.lanzaboote
               ./t495/thinkpad.nix
               inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t495

@@ -113,6 +113,11 @@ in
 
     settings.listen.host = "[::]";
 
+    settings.handshakes = {
+      retries = 20;
+      try_interval=150;
+    };
+
     settings.pki.initiating_version = 2;
     settings.punchy = {
       punch = true;
@@ -139,6 +144,7 @@ in
     staticHostMap = {
       # "0.6.9.3" = [ "teapot.cs.uic.edu:4242" ];
       "0.6.9.1" = [ "sohamg.xyz:4242" ];
+     # "0.6.9.7" = [ "131.193.48.56:4242" ];
       "fd8c:5016:9b22::1" = [ "sohamg.xyz:4242" ];
     };
     lighthouses = [
@@ -202,8 +208,13 @@ in
   };
 
   # Set your time zone.
-  time.timeZone = "America/Chicago";
+  # time.timeZone = "America/Chicago";
   # time.timeZone = "Asia/Kolkata";
+  # time.timeZone = "America/New_
+  time.timeZone = pkgs.lib.mkForce null; 
+
+  services.automatic-timezoned.enable = true;
+
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -362,7 +373,7 @@ in
     };
 
     # https://github.com/linrunner/TLP/issues/436
-    tlp.enable = true;
+    tlp.enable = false;
     tlp.settings = {
       RUNTIME_PM_BLACKLIST = "06:00.3 06:00.4";
       # CPU Settings
@@ -373,7 +384,7 @@ in
       CPU_MIN_FREQ_ON_BAT = "1400000";
       CPU_MAX_FREQ_ON_BAT = "1400000";
     };
-    power-profiles-daemon.enable = false;
+    power-profiles-daemon.enable = true;
 
     zerotierone = {
       enable = false;
@@ -676,7 +687,6 @@ in
       keep-outputs = true
       keep-derivations = true
       builders-use-substitutes = true
-      lazy-trees = true
     '';
     settings.trusted-users = [
       "root"
@@ -690,7 +700,7 @@ in
       persistent = true;
     };
 
-    #  package = pkgs.nixVersions.nix_2_23;
+    package = pkgs.lix;
     nixPath = [ "/etc/nix/path" ];
     registry = {
       # nixpkgs.flake = inp.nixpkgs;
