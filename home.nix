@@ -147,7 +147,7 @@ in
     nixPath = [ "/etc/nix/path" ];
   };
 
-  xdg.DesktopEntries = {
+  xdg.desktopEntries = {
     org-protocol = {
       name = "Org Protocol Handler";
       exec = "${emx}/bin/emacsclient -r %u";
