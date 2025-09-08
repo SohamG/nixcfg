@@ -109,7 +109,7 @@ in
     sessionVariables = {
       RESTIC_REPOSITORY = "sftp:rsync.net:restic";
       RESTIC_PASSWORD_FILE = "$HOME/restic.key";
-      EDITOR = "emacsclient -r";
+      EDITOR = "$\{HOME}/.local/scripts/emx";
       INFOPATH = "$\{HOME}/.local/share/info:$\{INFOPATH}";
       MITMPROXY_SSLKEYLOGFILE="$\{HOME}/.mitmproxy/sslkeylogfile.txt";
     };
@@ -145,6 +145,15 @@ in
   nix = {
     package = pkgs.nixVersions.latest;
     nixPath = [ "/etc/nix/path" ];
+  };
+
+  xdg.DesktopEntries = {
+    org-protocol = {
+      name = "Org Protocol Handler";
+      exec = "${emx}/bin/emacsclient -r %u";
+      terminal = false;
+      mimeType = ["x-scheme-handler/org-protocol"];
+    };
   };
 
 }

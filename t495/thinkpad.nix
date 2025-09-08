@@ -118,6 +118,8 @@ in
       try_interval=150;
     };
 
+    relays = [ "0.6.9.2" "0.6.9.1" ];
+
     settings.pki.initiating_version = 2;
     settings.punchy = {
       punch = true;

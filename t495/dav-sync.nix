@@ -9,9 +9,12 @@
         cache_size = 500;
         gui_optimize = 1;
         use_locks = 0;
+        # lock_timeout = 300;
         file_refresh = 60;
         dir_refresh = 60;
-        # buf_size = 256;
+        # allow_cookie = 1;
+        buf_size = 256;
+        debug = "locks";
       };
     };
   };
@@ -58,8 +61,8 @@
   };
   systemd.services.unison = {
     enable = true;
-    wantedBy = ["multi-user.target"];
-    after = ["network.target"];
+    # wantedBy = ["multi-user.target"];
+    requires = ["mnt-dav.mount"];
     unitConfig = {
       RequiresMountsFor="/mnt/dav";
       AssertFileNotEmpty="/etc/unison/dav.prf";

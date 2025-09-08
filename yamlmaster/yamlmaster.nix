@@ -116,6 +116,7 @@
     settings.relay = {
       relays = [ "0.6.9.1" ];
       use_relays = true;
+      am_relay = true;
     };
     firewall.inbound = [
       {
