@@ -32,6 +32,7 @@
   systemd.mounts = [
     {
       description = "Stalwart Dav";
+      requires = ["network-online.target"];
       what = "https://mail.loveyaml.org/dav/file/sohamg";
       where = "/mnt/dav";
       type = "davfs";
@@ -53,7 +54,7 @@
     repeat = watch+500
     unicode = false
     perms = 0
-    dontchmod = true
+    dontchmod = false
     ignorecase = false
     copyonconflict = true
     '';
@@ -61,9 +62,11 @@
   };
   systemd.services.unison = {
     enable = true;
-    # wantedBy = ["multi-user.target"];
-    requires = ["mnt-dav.mount"];
+    wantedBy = ["multi-user.target"];
+    # requires = ["mnt-dav.mount"];
+    after = ["mnt-dav.mount"];
     unitConfig = {
+      BindsTo = ["mnt-dav.mount"];
       RequiresMountsFor="/mnt/dav";
       AssertFileNotEmpty="/etc/unison/dav.prf";
     };
