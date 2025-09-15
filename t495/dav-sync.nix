@@ -53,17 +53,17 @@
     prefer = newer
     repeat = watch+500
     unicode = false
-    perms = 0
     dontchmod = false
     ignorecase = false
     copyonconflict = true
+    ignore = Name .#*
     '';
 
   };
   systemd.services.unison = {
     enable = true;
     wantedBy = ["multi-user.target"];
-    # requires = ["mnt-dav.mount"];
+    requires = ["mnt-dav.mount"];
     after = ["mnt-dav.mount"];
     unitConfig = {
       BindsTo = ["mnt-dav.mount"];
