@@ -38,8 +38,11 @@ in
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
     #  ./freeipa.nix
-    ./dav-sync.nix
+    # ./dav-sync.nix
+    ./syncthing.nix
   ];
+
+  hardware.trackpoint.enable = true;
 
   security.sudo = {
     enable = true;
@@ -86,7 +89,7 @@ in
       environment.etc."specialisation".text = "default-kernel";
       system.nixos.tags = [ "default-kernel" ];
       boot = {
-        kernelPackages = pkgs.lib.mkForce pkgs.linuxKernel.packages.linux_6_12;
+        kernelPackages = pkgs.lib.mkForce pkgs.linuxPackages_latest;
       };
     };
   };
@@ -157,6 +160,7 @@ in
 
   # Use the systemd-boot EFI boot loader.
   boot = {
+    # kernelParams = [ "amd_pstate=active" ];
     loader = {
       # systemd-boot.enable = pkgs.lib.mkForce false;
       systemd-boot.enable = pkgs.lib.mkForce false;
@@ -183,16 +187,16 @@ in
     # psmouse.proto=bare
     # kernel param to make trackpoint be a mouse.
     # kernelParams = ["psmouse.proto=bare"];
-    kernelPackages = pkgs.lib.mkDefault pkgs.linuxKernel.packages.linux_xanmod_latest;
+    kernelPackages = pkgs.lib.mkDefault pkgs.linuxPackages_xanmod_latest;
     extraModulePackages = with config.boot.kernelPackages; [
       v4l2loopback.out
       # digimend.out # Digimend is unmaintained.
     ];
     kernelModules = [
       "v4l2loopback"
-      "snd-loop" # "digimend"
-      "kvm-intel"
-      "snd_seq_midi"
+      # "snd-loop" # "digimend"
+      # "kvm-intel"
+      # "snd_seq_midi"
     ];
     plymouth.enable = true;
     plymouth.theme = "breeze";
@@ -251,6 +255,10 @@ in
   xdg.portal.wlr.enable = false;
   xdg.portal.extraPortals = with pkgs; [ kdePackages.xdg-desktop-portal-kde ];
   hardware.amdgpu.opencl.enable = true;
+
+  hardware.cpu.amd.updateMicrocode = true;
+  hardware.enableAllFirmware = true;
+  hardware.enableRedistributableFirmware = true;
   services = {
     openvpn.servers."ACM" = {
       config = "config ${config.age.secrets.openvpn-cfg.path}";
@@ -355,6 +363,7 @@ in
     udev.packages = with pkgs; [ yubikey-personalization ];
 
     # Combat trackpoint drift.
+    
     udev.extraRules = ''
       ACTION=="add", SUBSYSTEM=="input", ATTR{name}=="TPPS/2 Elan TrackPoint", ATTR{device/drift_time}="30"
       KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3434", ATTRS{idProduct}=="01e0", MODE="0660", GROUP="users", TAG+="uaccess", TAG+="udev-acl"
