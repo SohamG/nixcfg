@@ -96,6 +96,7 @@ in
 
   systemd.services.nebula-dns = {
     enable = true;
+    wantedBy = ["multi-user.target"];
     script = ''
       resolvectl domain nebula.mesh ~sohamg.xyz
       resolvectl dns nebula.mesh 0.6.9.2
@@ -103,6 +104,8 @@ in
     after = [ "nebula@mesh.service" ];
     description = "Set domain and DNS with resolved for nebula";
   };
+
+
 
   services.nebula.networks.mesh = {
 
